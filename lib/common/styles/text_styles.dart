@@ -30,3 +30,15 @@ const kTextButtonStyle = TextStyle(
   fontSize: 14,
   color: Color.fromARGB(255, 99, 135, 99),
 );
+
+const kSubtitleTextStyle = TextStyle(
+  fontSize: 18,
+  fontWeight: FontWeight.bold,
+  fontFamily: 'Inter',
+);
+
+const kDescriptionTextStyle = TextStyle(
+  fontFamily: 'Inter',
+  fontSize: 12,
+  color: Color.fromARGB(255, 99, 135, 99),
+);
