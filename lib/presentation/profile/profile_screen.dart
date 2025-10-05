@@ -29,11 +29,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         title: Text('Mi Perfil', style: kTitleTextStyle,),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
             SizedBox(height: 20,),
             ProfileHeaderWidget(),
             Padding(
@@ -65,11 +70,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(width: 16,),
               ],
             ),
-            Spacer(),
+            SizedBox(height: 20,),  // Adding some spacing instead
             ProfileActions(editProfile: (){}, logout: _showLogoutConfirmation,),
-          ],
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+        ),
+      )
     );
   }
 }
