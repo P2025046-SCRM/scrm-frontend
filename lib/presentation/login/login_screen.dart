@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Text('Bienvenido', style: kTitleTextStyle,),
               SizedBox(height: 24,),
-              TextFieldWidget(textController: emailController, text: 'Usuario'),
+              TextFieldWidget(textController: emailController, text: 'Email'),
               SizedBox(height: 12,),
               TextFieldWidget(textController: passwordController, text: 'Contraseña'),
               SizedBox(height: 24,),
