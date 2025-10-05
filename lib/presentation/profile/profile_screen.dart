@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:scrm/common/widgets/hl_button_widget.dart';
-
 import '../../common/styles/text_styles.dart';
-import '../../common/widgets/alt_button_widget.dart';
+import 'widgets/profile_actions_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -71,23 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             Spacer(),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: HighlightedButton(buttonText: 'Editar Perfil', onPressed: (){},),
-                ),
-                SizedBox(height: 12,),
-                SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: AltButtonWidget(buttonText: 'Cerrar Sesión', onPressed: (){},),
-                ),
-              ],
-            ),
+            ProfileActions(editProfile: (){}, logout: (){},),
           ],
         ),
       ),
