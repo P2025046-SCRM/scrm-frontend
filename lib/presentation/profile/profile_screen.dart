@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../common/styles/text_styles.dart';
+import 'widgets/logout_confirmation_widget.dart';
 import 'widgets/profile_actions_widget.dart';
+import 'widgets/profile_header_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,6 +12,16 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+
+  void _showLogoutConfirmation() {
+    showModalBottomSheet(context: context,
+    barrierColor: Colors.black.withAlpha(150),
+    isScrollControlled: true,
+    builder: (BuildContext context){
+      return LogoutConfirmationWidget();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,22 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20,),
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage('assets/profile_placeholder.png'),
-                  ),
-                  SizedBox(height: 8,),
-                  Text('Juan Perez', style: kSubtitleTextStyle,),
-                  SizedBox(height: 4,),
-                  Text('3J Solutions', style: kDescriptionTextStyle,),
-                  SizedBox(height: 2,),
-                  Text('juanperez@example.com', style: kDescriptionTextStyle,),
-                ],
-              ),
-            ),
+            ProfileHeaderWidget(),
             Padding(
               padding: const EdgeInsets.fromLTRB(16,42,0,12),
               child: Text('Configuración', style: kSubtitleTextStyle,),
@@ -69,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             Spacer(),
-            ProfileActions(editProfile: (){}, logout: (){},),
+            ProfileActions(editProfile: (){}, logout: _showLogoutConfirmation,),
           ],
         ),
       ),
