@@ -34,7 +34,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             SizedBox(
               height: 48,
               width: double.infinity,
-              child: HighlightedButton(buttonText: 'Guardar Cambios', onPressed: (){},),
+              child: HighlightedButton(buttonText: 'Guardar Cambios', onPressed: (){
+                // add logic to save changes
+                Navigator.pop(context);
+              },),
             ),
             SizedBox(height: 12,),
           ],

@@ -71,7 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             SizedBox(height: 20,),  // Adding some spacing instead
-            ProfileActions(editProfile: (){}, logout: _showLogoutConfirmation,),
+            ProfileActions(editProfile: (){
+              Navigator.pushNamed(context, 'edit_profile');
+            }, logout: _showLogoutConfirmation,),
                 ],
               ),
             ),

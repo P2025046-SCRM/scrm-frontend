@@ -49,13 +49,18 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(
                 height: 48,
                 width: double.infinity,
-                child: HighlightedButton(buttonText: 'Crear Cuenta', onPressed: (){},),
+                child: HighlightedButton(buttonText: 'Crear Cuenta', onPressed: (){
+                  Navigator.pushReplacementNamed(context, 'login');
+                  // add logic to create account
+                },),
               ),
               SizedBox(height: 16,),
               Center(
                 child: Column(
                   children: [
-                    TextButton(onPressed: (){},
+                    TextButton(onPressed: (){
+                      Navigator.pushReplacementNamed(context, 'login');
+                    },
                       child: Text('Ya tienes una cuenta? Inicia sesión',
                         style: kTextButtonStyle,)),
                   ],

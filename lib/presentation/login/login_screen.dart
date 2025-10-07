@@ -43,7 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 height: 48,
                 width: double.infinity,
-                child: HighlightedButton(buttonText: 'Iniciar Sesión', onPressed: (){},),
+                child: HighlightedButton(buttonText: 'Iniciar Sesión', onPressed: (){
+                  Navigator.pushReplacementNamed(context, 'dashboard');
+                },),
               ),
               SizedBox(height: 16,),
               Center(
@@ -53,7 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text('Olvidé mi contraseña',
                         style: kTextButtonStyle,)),
                     SizedBox(height: 8,),
-                    TextButton(onPressed: (){},
+                    TextButton(onPressed: (){
+                      Navigator.pushReplacementNamed(context, 'signup');
+                    },
                       child: Text('Crear una cuenta',
                         style: kTextButtonStyle,)),
                   ],
