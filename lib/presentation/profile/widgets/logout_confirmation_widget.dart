@@ -26,10 +26,17 @@ class LogoutConfirmationWidget extends StatelessWidget {
             children: <Widget>[
               AltButtonWidget(buttonText: 'Cancelar', onPressed: () => Navigator.pop(context),), // Close bottom sheet
               Spacer(),
-              HighlightedButton(buttonText: 'Cerrar Sesión', onPressed: () {
-                Navigator.pop(context); // Close bottom sheet
-                Navigator.pushReplacementNamed(context, 'login'); // Navigate to login screen
-              }),
+              HighlightedButton(
+                buttonText: 'Cerrar Sesión',
+                onPressed: () {
+                  Navigator.pop(context); // Close bottom sheet
+                  // add logic to clear user session here
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                  'login',
+                  (Route<dynamic> route) => false,
+                  ); // Remove all routes and go to login
+                },
+              ),
             ],
           ),
           const SizedBox(height: 10.0,),
