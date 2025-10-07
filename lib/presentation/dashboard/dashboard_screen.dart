@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
+import '../../common/widgets/appbar_widget.dart';
+import '../../common/widgets/bottom_nav_bar_widget.dart';
 import 'widgets/indicator_widget.dart';
+import 'widgets/stats_counter_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,21 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text('Dashboard', style: kTitleTextStyle,),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {},
-              child: CircleAvatar(
-          backgroundImage: AssetImage('assets/profile_placeholder.png'),
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: CustomAppbar(title: 'Dashboard', showProfile: true,),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: SingleChildScrollView(
@@ -109,18 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text('Porcentaje de Materiales Reutilizables', style: kRegularTextStyle,),
               Text('Reciclable: 80%    |    No Reciclable: 20%', style: kDescriptionTextStyle,),
               SizedBox(height: 25,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    children: [
-                      Text('1240', style: kTitleTextStyle,),
-                      SizedBox(height: 2,),
-                      Text('Unidades de Residuos Procesadas', style: kRegularTextStyle,),
-                    ],
-                  )
-                ],
-              ),
+              StatsCounter(count: 1240, statLabel: 'Unidades de Residuos Procesadas',), // Pass actual data here
               SizedBox(height: 25,),
               Container(
                 height: 220,
@@ -328,25 +306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_outlined),
-            label: 'Clasificar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Historial',
-          ),
-        ],
-        currentIndex: 0,
-        selectedItemColor: Colors.green,
-        onTap: (index) { },
-      ),
+      bottomNavigationBar: BottomNavBar(currentIndex: 0,),
     );
   }
 }
