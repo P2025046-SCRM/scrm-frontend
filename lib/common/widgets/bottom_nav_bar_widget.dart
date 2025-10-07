@@ -30,13 +30,13 @@ class BottomNavBar extends StatelessWidget {
         if (index == currentIndex) return; // Do nothing if the same tab is tapped
         switch (index) {
           case 0:
-            Navigator.pushNamed(context, 'dashboard');
+            Navigator.pushReplacementNamed(context, 'dashboard');
             break;
           case 1:
-            Navigator.pushNamed(context, ''); // Add route for camera screen
+            Navigator.pushReplacementNamed(context, ''); // Add route for camera screen
             break;
           case 2:
-            Navigator.pushNamed(context, ''); // Add route for history screen
+            Navigator.pushReplacementNamed(context, 'history'); // Add route for history screen
             break;
         }
       },
