@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   fl_chart: ^1.1.0
   syncfusion_flutter_gauges: ^31.1.19
+  camera: ^0.11.2
+  gal: ^2.3.2
 
 dependency_overrides:
   vector_math: ^2.1.6 # Override to resolve version conflicts
