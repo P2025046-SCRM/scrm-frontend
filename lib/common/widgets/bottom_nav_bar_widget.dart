@@ -33,7 +33,7 @@ class BottomNavBar extends StatelessWidget {
             Navigator.pushReplacementNamed(context, 'dashboard');
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, ''); // Add route for camera screen
+            Navigator.pushNamed(context, 'camera'); // Add route for camera screen
             break;
           case 2:
             Navigator.pushReplacementNamed(context, 'history'); // Add route for history screen
