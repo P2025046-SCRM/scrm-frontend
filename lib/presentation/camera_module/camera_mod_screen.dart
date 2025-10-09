@@ -1,8 +1,10 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/item_thumbnail_widget.dart';
+import 'package:scrm/presentation/camera_module/widgets/action_button_widget.dart';
 
 class CameraModScreen extends StatefulWidget {
   const CameraModScreen({super.key});
@@ -11,13 +13,19 @@ class CameraModScreen extends StatefulWidget {
   State<CameraModScreen> createState() => _CameraModScreenState();
 }
 
+
 class _CameraModScreenState extends State<CameraModScreen> {
   List<CameraDescription> cameras = [];
   CameraController? camController;
   int selectedCameraIndex = 0;
+  int isDebug = 1; // 1 for debug, 0 for prod, replace later for provider
 
   XFile? imageFile;
   String? imagePath;
+  
+  // Image to be sent to endpoint
+  XFile? imageToProcess;
+  bool isProcessing = false;
 
   @override
   void initState(){
@@ -32,7 +40,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
         cameras = availableCams;
         camController = CameraController(
           availableCams[selectedCameraIndex],
-          ResolutionPreset.high,
+          ResolutionPreset.medium,
         );
       });
       camController?.initialize().then((_) {
@@ -46,7 +54,86 @@ class _CameraModScreenState extends State<CameraModScreen> {
     }
   }
 
-  Future<void> _switchCamera() async {
+  // Process image from either camera or gallery
+  Future<void> _processImage(XFile imageFile) async {
+    try {
+      setState(() {
+        imageToProcess = imageFile;
+        imagePath = imageFile.path;
+        isProcessing = true;
+      });
+
+      // TODO: Once endpoint is implemented, send imageToProcess here
+      // For now, simulate processing
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
+      }
+
+      print('Image ready for processing: ${imageToProcess?.path}');
+    } catch (e) {
+      print('Error processing image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al procesar la imagen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null) {
+        await _processImage(pickedFile);
+        print('Image picked: $imagePath');
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al seleccionar la imagen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _takePicture() async {
+    if (camController == null || !camController!.value.isInitialized) {
+      return;
+    }
+
+    try {
+      final XFile photo = await camController!.takePicture();
+      await _processImage(photo);
+    } catch (e) {
+      print('Error taking picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al tomar la foto: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }  Future<void> _switchCamera() async {
     if (cameras.isEmpty) return;
 
     // Dispose current controller
@@ -59,7 +146,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
       // Create new controller with selected camera
       camController = CameraController(
         cameras[selectedCameraIndex],
-        ResolutionPreset.high,
+        ResolutionPreset.medium,
       );
     });
 
@@ -81,12 +168,6 @@ class _CameraModScreenState extends State<CameraModScreen> {
       appBar: CustomAppbar(title: 'Clasificación de Residuos',
         showProfile: false,
       ),
-      floatingActionButton: cameras.length > 1
-          ? FloatingActionButton(
-              onPressed: _switchCamera,
-              child: const Icon(Icons.switch_camera),
-            )
-          : null,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -102,11 +183,19 @@ class _CameraModScreenState extends State<CameraModScreen> {
                   : CameraPreview(camController!),
             ),
             SizedBox(height: 20,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Escaneando...", style: kSubtitleTextStyle,),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  isDebug == 1
+                    ? ActionIconButton(onPressed: _pickImageFromGallery, icon: Icons.image_outlined)
+                    : SizedBox(width: 48),
+                  Text(isProcessing ? "Procesando..." : "Escaneando...", 
+                       style: kSubtitleTextStyle),
+                  ActionIconButton(onPressed: isProcessing ? null : _takePicture, icon: Icons.camera) //TODO: change for an automatic trigger later
+                ],
+              ),
             ),
             SizedBox(height: 20,),
             Padding(
@@ -122,7 +211,12 @@ class _CameraModScreenState extends State<CameraModScreen> {
                       SizedBox(height: 10,),
                       Text('Retazo de Madera', style: kSubtitleTextStyle,),
                     ],
-                  )
+                  ),
+                  Spacer(),
+                  cameras.length > 1
+                    ? ActionIconButton(onPressed: _switchCamera, icon: Icons.cameraswitch_outlined)
+                    : SizedBox(width: 1,),
+                  SizedBox(width: 8,),
                 ],
               ),
             )

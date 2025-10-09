@@ -8,7 +8,7 @@ import '../presentation/profile/edit_profile_screen.dart';
 import '../presentation/profile/profile_screen.dart';
 
 class AppRoutes {
-  static String initialRoute = 'camera';
+  static String initialRoute = 'login';
   static Map<String, Widget Function(BuildContext)> getRoutes = {
     'login': (BuildContext context) => LoginScreen(),
     'signup': (BuildContext context) => SignupScreen(),
