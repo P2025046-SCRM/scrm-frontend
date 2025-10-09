@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,17 +22,109 @@ class _CameraModScreenState extends State<CameraModScreen> {
   int selectedCameraIndex = 0;
   int isDebug = 1; // 1 for debug, 0 for prod, replace later for provider
 
+  String imagePath = 'assets/sample_wood_image.jpg'; // placeholder imagepath;
+
+  bool isCurrentImageAsset = true; // to check if current img is asset of from gallery/camera
+
   XFile? imageFile;
-  String? imagePath;
   
   // Image to be sent to endpoint
   XFile? imageToProcess;
   bool isProcessing = false;
 
+  //state variables for classification result
+  String layer1 = 'Reciclable';
+  String layer2 = 'Retazo de Madera';
+  double confidence = 0.95;
+
+  //Random object for simmulating different results
+  final _random = Random();
+
+  //Dummy data for simulation
+  final List<Map<String, dynamic>> _dummyClassificationData = const [
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Retazo de Madera',
+      'confidence': 0.939,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Pieza Plástica',
+      'confidence': 0.888,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Metal',
+      'confidence': 0.751,
+    },
+    {
+      'layer1': 'No Reciclable',
+      'layer2': 'Contaminado',
+      'confidence': 0.962,
+    },
+    {
+      'layer1': 'No Reciclable',
+      'layer2': 'Residuo Orgánico',
+      'confidence': 0.869,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Biomasa',
+      'confidence': 0.778,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Retazo de Madera',
+      'confidence': 0.981,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Pieza Plástica',
+      'confidence': 0.884,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Metal',
+      'confidence': 0.91,
+    },
+    {
+      'layer1': 'Reciclable',
+      'layer2': 'Biomasa',
+      'confidence': 0.89,
+    },
+  ];
+
   @override
   void initState(){
     super.initState();
     _setupCameraController();
+  }
+
+  String _wasteType(String layer1, String layer2) {
+    String recycleType = '';
+    if (layer1 == 'No Reciclable') {
+      return layer1;
+    } else if (layer1 == 'Reciclable') {
+      switch (layer2) {
+        case 'Retazo de Madera':
+          recycleType = 'Interno';
+          break;
+        case 'Biomasa':
+          recycleType = 'Externo';
+          break;
+        case 'Metal':
+          recycleType = 'Externo';
+          break;
+        case 'Pieza Plástica':
+          recycleType = 'Interno';
+          break;
+        default:
+          recycleType = 'Desconocido'; // Added a default for safety
+      }
+      return '$layer1 - $recycleType';
+    } else {
+      return layer1;
+    }
   }
 
   Future<void> _setupCameraController() async {
@@ -60,15 +154,26 @@ class _CameraModScreenState extends State<CameraModScreen> {
       setState(() {
         imageToProcess = imageFile;
         imagePath = imageFile.path;
+
+        isCurrentImageAsset = false;
         isProcessing = true;
       });
 
       // TODO: Once endpoint is implemented, send imageToProcess here
-      // For now, simulate processing
-      await Future.delayed(const Duration(seconds: 2));
+      // For now, simulate processing and results
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Simulate new classification results
+      final int randomIndex = _random.nextInt(_dummyClassificationData.length);
+      final Map<String, dynamic> randomResult = _dummyClassificationData[randomIndex];
+
+      //******************* */
       
       if (mounted) {
         setState(() {
+          layer1 = randomResult['layer1'];
+          layer2 = randomResult['layer2'];
+          confidence = randomResult['confidence'];
           isProcessing = false;
         });
       }
@@ -133,7 +238,9 @@ class _CameraModScreenState extends State<CameraModScreen> {
         );
       }
     }
-  }  Future<void> _switchCamera() async {
+  }
+  
+  Future<void> _switchCamera() async {
     if (cameras.isEmpty) return;
 
     // Dispose current controller
@@ -163,6 +270,9 @@ class _CameraModScreenState extends State<CameraModScreen> {
   @override
   Widget build(BuildContext context) {
     double picSize = MediaQuery.sizeOf(context).width;
+
+    double showConfidence = (confidence * 100).roundToDouble();
+    String shownLabel = _wasteType(layer1, layer2);
 
     return Scaffold(
       appBar: CustomAppbar(title: 'Clasificación de Residuos',
@@ -202,14 +312,14 @@ class _CameraModScreenState extends State<CameraModScreen> {
               padding: const EdgeInsets.all(15.0),
               child: Row(
                 children: [
-                  ItemThumbnail(imagePath: 'assets/sample_wood_image.jpg',),
-                  SizedBox(width: 15,),
+                  ItemThumbnail(imagePath: imagePath, isAsset: isCurrentImageAsset,),
+                  SizedBox(width: 5,),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Reciclable - Interno • 95.0%', style: kRegularTextStyle,),
+                    children: [ //added results shown logic
+                      Text('$shownLabel • $showConfidence%', style: kSubtitleTextStyle,),
                       SizedBox(height: 10,),
-                      Text('Retazo de Madera', style: kSubtitleTextStyle,),
+                      Text(layer2, style: kRegularTextStyle,),
                     ],
                   ),
                   Spacer(),

@@ -27,9 +27,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 12,),
-            TextFieldWidget(textController: nameController, text: 'Nombre'),
+            TextFieldWidget(textController: nameController, text: 'Nombre', inputType: TextInputType.name,),
             SizedBox(height: 12,),
-            TextFieldWidget(textController: emailController, text: 'Email'),
+            TextFieldWidget(textController: emailController, text: 'Email', inputType: TextInputType.emailAddress,),
             Spacer(),
             SizedBox(
               height: 48,

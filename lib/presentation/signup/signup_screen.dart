@@ -38,13 +38,13 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               Text('Crea tu cuenta', style: kTitleTextStyle,),
               SizedBox(height: 24,),
-              TextFieldWidget(textController: nameController, text: 'Nombre'),
+              TextFieldWidget(textController: nameController, text: 'Nombre', inputType: TextInputType.name,),
               SizedBox(height: 12,),
-              TextFieldWidget(textController: emailController, text: 'Email'),
+              TextFieldWidget(textController: emailController, text: 'Email', inputType: TextInputType.emailAddress,),
               SizedBox(height: 12,),
-              TextFieldWidget(textController: passwordController, text: 'Contraseña'),
+              TextFieldWidget(textController: passwordController, text: 'Contraseña', inputType: TextInputType.visiblePassword,),
               SizedBox(height: 12,),
-              TextFieldWidget(textController: confirmPwController, text: 'Confirmar Contraseña'),
+              TextFieldWidget(textController: confirmPwController, text: 'Confirmar Contraseña', inputType: TextInputType.visiblePassword,),
               SizedBox(height: 24,),
               SizedBox(
                 height: 48,

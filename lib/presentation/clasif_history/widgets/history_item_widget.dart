@@ -53,7 +53,7 @@ class HistoryListItem extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: Row(
         children: [
-          ItemThumbnail(imagePath: imagePath,),
+          ItemThumbnail(imagePath: imagePath, isAsset: true,), //TODO: change isAsset to false when using real images
           SizedBox(width: 15,),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
