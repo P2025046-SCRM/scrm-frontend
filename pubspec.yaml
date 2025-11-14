@@ -15,6 +15,8 @@ dependencies:
   gal: ^2.3.2
   image_picker: ^1.2.0
   flutter_dotenv: ^6.0.0
+  http: ^1.6.0
+  provider: ^6.1.5+1
 
 dependency_overrides:
   vector_math: ^2.1.6 # Override to resolve version conflicts
