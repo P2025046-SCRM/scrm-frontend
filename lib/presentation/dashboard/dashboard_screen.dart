@@ -1,6 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
+import 'package:scrm/data/providers/dashboard_provider.dart';
+import 'package:scrm/data/providers/user_provider.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../common/widgets/appbar_widget.dart';
@@ -16,8 +19,32 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-
-  final List<double> barData = const [40, 26, 16, 19]; // input data for bars
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch dashboard statistics on screen load
+      final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      
+      // Fetch user data first to get company name
+      if (userProvider.currentUser == null || userProvider.userName == null) {
+        userProvider.fetchUserData().then((_) {
+          // After user data is loaded, fetch statistics with company name
+          final companyName = userProvider.userCompany ?? '3J Solutions';
+          dashboardProvider.fetchStatistics(companyName: companyName);
+        }).catchError((e) {
+          print('Failed to fetch user data: $e');
+          // Still try to fetch statistics with default company
+          dashboardProvider.fetchStatistics(companyName: '3J Solutions');
+        });
+      } else {
+        // User data already loaded, fetch statistics with company name
+        final companyName = userProvider.userCompany ?? '3J Solutions';
+        dashboardProvider.fetchStatistics(companyName: companyName);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +56,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hola, Juan Perez', style: kSubtitleTextStyle,),
+              Consumer<UserProvider>(
+                builder: (context, userProvider, _) {
+                  final userName = userProvider.userName ?? 'Usuario';
+                  return Text('Hola, $userName', style: kSubtitleTextStyle,);
+                },
+              ),
               SizedBox(height: 20,),
-              Container(
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  if (dashboardProvider.isLoading && dashboardProvider.statistics == null) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  
+                  final recyclablePercent = dashboardProvider.recyclablePercentage;
+                  final nonRecyclablePercent = dashboardProvider.nonRecyclablePercentage;
+                  
+                  return Container(
                 height: 200,
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
@@ -55,14 +96,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           sections: [
                             PieChartSectionData(
                               color: Colors.green,
-                              value: 80,
+                              value: recyclablePercent,
                               title: 'Reciclable',
                               showTitle: false,
                               radius: 50,
                             ),
                             PieChartSectionData(
                               color: Colors.red,
-                              value: 20,
+                              value: nonRecyclablePercent,
                               title: 'No Reciclable',
                               showTitle: false,
                               radius: 50,
@@ -93,14 +134,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
+                  );
+                },
               ),
               SizedBox(height: 8,),
-              Text('Porcentaje de Materiales Reutilizables', style: kRegularTextStyle,),
-              Text('Reciclable: 80%    |    No Reciclable: 20%', style: kDescriptionTextStyle,),
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  final recyclablePercent = dashboardProvider.recyclablePercentage.toStringAsFixed(0);
+                  final nonRecyclablePercent = dashboardProvider.nonRecyclablePercentage.toStringAsFixed(0);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Porcentaje de Materiales Reutilizables', style: kRegularTextStyle,),
+                      Text('Reciclable: $recyclablePercent%    |    No Reciclable: $nonRecyclablePercent%', style: kDescriptionTextStyle,),
+                    ],
+                  );
+                },
+              ),
               SizedBox(height: 25,),
-              StatsCounter(count: 1240, statLabel: 'Unidades de Residuos Procesadas',), // Pass actual data here
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  return StatsCounter(
+                    count: dashboardProvider.totalProcessed,
+                    statLabel: 'Unidades de Residuos Procesadas',
+                  );
+                },
+              ),
               SizedBox(height: 25,),
-              Container(
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  final barData = dashboardProvider.wasteTypeDistribution;
+                  
+                  return Container(
                 height: 220,
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
@@ -158,78 +223,100 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 140,
                       child: BarChart(
                         BarChartData(
-                      borderData: FlBorderData(
-                        show: false,
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 50, // Wider Y axis for title
-                          getTitlesWidget: (value, meta) {
-                            // Show only integer ticks, e.g. every 10 units
-                            if (value % 10 == 0) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: TextStyle(fontSize: 12),
-                            );
-                            }
-                            return SizedBox.shrink();
-                          },
+                          borderData: FlBorderData(
+                            show: false,
                           ),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: false,
-                          ),
-                        ),
-                      ),
-                      gridData: const FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                      ),
-                      maxY: 40, // <-- Adjust to maxY based on data
-                      minY: 0,
-                        barGroups: List.generate(
-                        barData.length,
-                        (i) => BarChartGroupData(
-                          x: i,
-                          barRods: [
-                          BarChartRodData(
-                            toY: barData[i],
-                            color: [
-                            const Color.fromARGB(255, 193, 123, 25),
-                            const Color.fromARGB(255, 71, 178, 29),
-                            const Color.fromARGB(255, 146, 155, 170),
-                            const Color.fromARGB(255, 6, 17, 167),
-                            ][i % 4], // Assign a different color for each bar
-                            width: 25,
-                            borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(3),
-                            topRight: Radius.circular(3),
+                          titlesData: FlTitlesData(
+                            show: true,
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 50, // Wider Y axis for title
+                                getTitlesWidget: (value, meta) {
+                                  // Show only integer ticks, e.g. every 10 units
+                                  if (value % 10 == 0) {
+                                    return Text(
+                                      value.toInt().toString(),
+                                      style: TextStyle(fontSize: 12),
+                                    );
+                                  }
+                                  return SizedBox.shrink();
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: false,
+                              ),
                             ),
                           ),
-                          ],
-                        ),
+                          gridData: const FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                          ),
+                          maxY: barData.isEmpty ? 40 : (barData.reduce((a, b) => a > b ? a : b) * 1.2).ceil().toDouble(),
+                          minY: 0,
+                          barGroups: List.generate(
+                            barData.length,
+                            (i) => BarChartGroupData(
+                              x: i,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: barData.isEmpty ? 0.0 : barData[i],
+                                  color: [
+                                    const Color.fromARGB(255, 193, 123, 25),
+                                    const Color.fromARGB(255, 71, 178, 29),
+                                    const Color.fromARGB(255, 146, 155, 170),
+                                    const Color.fromARGB(255, 6, 17, 167),
+                                  ][i % 4], // Assign a different color for each bar
+                                  width: 25,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(3),
+                                    topRight: Radius.circular(3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   ],
                 ),
+                  );
+                },
               ),
               SizedBox(height: 8,),
-              Text('Residuos Reutilizables por Tipo', style: kRegularTextStyle,),
-              Text('Retazos: 40% | Biomasa: 30% | Metales: 10% | Piezas Plásticas: 5%', style: kDescriptionTextStyle,),
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  final percentages = dashboardProvider.getMaterialPercentages();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Residuos Reutilizables por Tipo', style: kRegularTextStyle,),
+                      Text(
+                        'Retazos: ${percentages['retazos']!.toStringAsFixed(0)}%  |  '
+                        'Biomasa: ${percentages['biomasa']!.toStringAsFixed(0)}%  |  '
+                        'Metales: ${percentages['metales']!.toStringAsFixed(0)}%  |  '
+                        'Plásticos: ${percentages['plasticos']!.toStringAsFixed(0)}%',
+                        style: kDescriptionTextStyle,
+                      ),
+                    ],
+                  );
+                },
+              ),
               SizedBox(height: 25,),
-              Container(
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  final accuracy = dashboardProvider.accuracyPercentage;
+                  
+                  return Container(
                 height: 200,
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
@@ -260,11 +347,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               GaugeRange(startValue: 85, endValue: 100, color: Colors.green),
                             ],
                             pointers: <GaugePointer>[
-                              NeedlePointer(value: 91.25, needleLength: 0.95, needleEndWidth: 7,) // replace needle value with actual accuracy here
+                              NeedlePointer(value: accuracy, needleLength: 0.95, needleEndWidth: 7,)
                             ],
                             annotations: <GaugeAnnotation>[
                               GaugeAnnotation(
-                                widget: Text('91.25%', style: kTitleTextStyle,),
+                                widget: Text('${accuracy.toStringAsFixed(2)}%', style: kTitleTextStyle,),
                                 angle: 90,
                                 positionFactor: 0.5
                               )
@@ -299,9 +386,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
+                  );
+                },
               ),
-              Text('Porcentaje de Aciertos', style: kRegularTextStyle,),
-              Text('Alto (91.25%)', style: kDescriptionTextStyle,),
+              Consumer<DashboardProvider>(
+                builder: (context, dashboardProvider, _) {
+                  final accuracy = dashboardProvider.accuracyPercentage;
+                  String accuracyLevel;
+                  if (accuracy >= 85) {
+                    accuracyLevel = 'Alto';
+                  } else if (accuracy >= 60) {
+                    accuracyLevel = 'Medio';
+                  } else {
+                    accuracyLevel = 'Bajo';
+                  }
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Porcentaje de Aciertos', style: kRegularTextStyle,),
+                      Text('$accuracyLevel (${accuracy.toStringAsFixed(2)}%)', style: kDescriptionTextStyle,),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
