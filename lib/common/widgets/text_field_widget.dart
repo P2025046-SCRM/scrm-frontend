@@ -6,12 +6,16 @@ class TextFieldWidget extends StatelessWidget {
     super.key,
     required this.textController,
     required this.text,
-    required this.inputType
+    required this.inputType,
+    this.validator,
+    this.obscureText = false,
   });
 
   final TextEditingController textController;
   final String text;
   final TextInputType inputType;
+  final String? Function(String?)? validator;
+  final bool obscureText;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +23,8 @@ class TextFieldWidget extends StatelessWidget {
       keyboardType: inputType,
       controller: textController,
       style: kRegularTextStyle,
+      obscureText: obscureText,
+      validator: validator,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
