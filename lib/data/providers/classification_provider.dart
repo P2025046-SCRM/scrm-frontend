@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../services/history_service.dart';
 
@@ -10,6 +11,9 @@ class ClassificationProvider extends ChangeNotifier {
 
   List<Map<String, dynamic>> _history = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  DocumentSnapshot? _lastDocument;
   String? _errorMessage;
 
   ClassificationProvider(this._historyService) {
@@ -19,8 +23,14 @@ class ClassificationProvider extends ChangeNotifier {
   /// Get classification history
   List<Map<String, dynamic>> get history => _history;
 
-  /// Check if history is loading
+  /// Check if history is loading (initial load)
   bool get isLoading => _isLoading;
+
+  /// Check if more items are being loaded (pagination)
+  bool get isLoadingMore => _isLoadingMore;
+
+  /// Check if there are more items to load
+  bool get hasMore => _hasMore;
 
   /// Get current error message
   String? get errorMessage => _errorMessage;
@@ -54,13 +64,34 @@ class ClassificationProvider extends ChangeNotifier {
 
     _isLoading = true;
     _errorMessage = null;
+    _hasMore = true;
+    _lastDocument = null;
     notifyListeners();
 
     try {
-      _history = await _historyService.getHistory(
+      final history = await _historyService.getHistory(
         companyName: companyName,
         limit: limit,
       );
+      
+      // Extract document snapshots and remove them from history items
+      _history = history.map((item) {
+        final itemCopy = Map<String, dynamic>.from(item);
+        itemCopy.remove('_document_snapshot');
+        return itemCopy;
+      }).toList();
+      
+      // Set last document for pagination (last item in the list)
+      if (history.isNotEmpty) {
+        _lastDocument = history.last['_document_snapshot'] as DocumentSnapshot?;
+      } else {
+        _lastDocument = null;
+      }
+      
+      // Check if there are more items to load
+      final fetchLimit = limit ?? 10;
+      _hasMore = history.length == fetchLimit;
+      
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
@@ -69,6 +100,67 @@ class ClassificationProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       notifyListeners();
       print('Error fetching history: $e');
+      rethrow;
+    }
+  }
+
+  /// Load more history items (pagination)
+  /// 
+  /// [companyName] - Company name to filter predictions by (required)
+  /// [limit] - Number of records to fetch (default: 10)
+  Future<void> loadMore({
+    required String companyName,
+    int limit = 10,
+  }) async {
+    if (_isLoadingMore || !_hasMore || _lastDocument == null) {
+      return;
+    }
+
+    _isLoadingMore = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final history = await _historyService.getHistory(
+        companyName: companyName,
+        limit: limit,
+        startAfter: _lastDocument,
+      );
+      
+      if (history.isEmpty) {
+        _hasMore = false;
+        _isLoadingMore = false;
+        notifyListeners();
+        return;
+      }
+      
+      // Extract document snapshots and remove them from history items
+      final newItems = history.map((item) {
+        final itemCopy = Map<String, dynamic>.from(item);
+        itemCopy.remove('_document_snapshot');
+        return itemCopy;
+      }).toList();
+      
+      _history.addAll(newItems);
+      
+      // Set last document for pagination (last item in the list)
+      if (history.isNotEmpty) {
+        _lastDocument = history.last['_document_snapshot'] as DocumentSnapshot?;
+      } else {
+        _lastDocument = null;
+      }
+      
+      // Check if there are more items to load
+      _hasMore = history.length == limit;
+      
+      _isLoadingMore = false;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      _isLoadingMore = false;
+      _errorMessage = e.toString();
+      notifyListeners();
+      print('Error loading more history: $e');
       rethrow;
     }
   }
@@ -88,6 +180,8 @@ class ClassificationProvider extends ChangeNotifier {
   /// Clear classification history
   Future<void> clearHistory() async {
     _history = [];
+    _lastDocument = null;
+    _hasMore = true;
     _errorMessage = null;
     notifyListeners();
   }
@@ -102,7 +196,7 @@ class ClassificationProvider extends ChangeNotifier {
   /// 
   /// [companyName] - Company name to filter predictions by (required)
   Future<void> refresh({required String companyName}) async {
-    await fetchHistory(companyName: companyName, forceRefresh: true);
+    await fetchHistory(companyName: companyName, limit: 10, forceRefresh: true);
   }
 }
 

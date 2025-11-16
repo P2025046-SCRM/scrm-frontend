@@ -15,18 +15,24 @@ class HistoryService {
   /// 
   /// [companyName] - Company name to filter predictions by.
   /// [limit] - Maximum number of records to fetch (optional).
+  /// [startAfter] - Document snapshot to start after for pagination (optional).
   /// 
   /// Returns list of classification records in a format compatible with
   /// the history screen (image_path, layer1_result, layer2_result, metadata, timestamp).
   Future<List<Map<String, dynamic>>> getHistory({
     required String companyName,
     int? limit,
+    DocumentSnapshot? startAfter,
   }) async {
     try {
       Query collection = _firestore
           .collection('predictions')
           .where('company', isEqualTo: companyName)
           .orderBy('created_at', descending: true);
+
+      if (startAfter != null) {
+        collection = collection.startAfterDocument(startAfter);
+      }
 
       if (limit != null) {
         collection = collection.limit(limit);
@@ -59,11 +65,17 @@ class HistoryService {
           'metadata': metadata,
           'timestamp': timestampString, // Keep for backward compatibility
           'created_at_timestamp': timestampString, // Use this for created_at timestamp
+          '_document_snapshot': doc, // Store document snapshot for pagination
         };
       }).toList();
 
-      // Cache history locally
-      await _storageService.saveClassificationHistory(history);
+      // Cache history locally (without document snapshots)
+      final historyForCache = history.map((item) {
+        final itemCopy = Map<String, dynamic>.from(item);
+        itemCopy.remove('_document_snapshot');
+        return itemCopy;
+      }).toList();
+      await _storageService.saveClassificationHistory(historyForCache);
 
       return history;
     } catch (e) {
