@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import '../../common/styles/text_styles.dart';
 
 class HighlightedButton extends StatelessWidget {
-  const HighlightedButton({super.key, required this.buttonText, required this.onPressed});
+  const HighlightedButton({super.key, required this.buttonText, this.onPressed});
   final String buttonText;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: onPressed,
+    return ElevatedButton(
+      onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.lightGreen,
+        backgroundColor: onPressed == null 
+            ? Colors.grey 
+            : Colors.lightGreen,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         )
       ),
-      child: Text(buttonText, style: kAltRegularTextStyle,),);
+      child: Text(buttonText, style: kAltRegularTextStyle,),
+    );
   }
 }
