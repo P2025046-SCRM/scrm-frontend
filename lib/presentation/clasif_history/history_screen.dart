@@ -16,11 +16,15 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  final ScrollController _scrollController = ScrollController();
+  static const int _pageSize = 10;
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch history on screen load
+      // Fetch initial history batch on screen load
       final classificationProvider = Provider.of<ClassificationProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       
@@ -28,11 +32,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final companyName = userProvider.userCompany ?? '3J Solutions';
       
       if (classificationProvider.history.isEmpty) {
-        classificationProvider.fetchHistory(companyName: companyName).catchError((e) {
+        classificationProvider.fetchHistory(
+          companyName: companyName,
+          limit: _pageSize,
+        ).catchError((e) {
           print('Failed to fetch history: $e');
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final delta = 200; // Trigger when 200 pixels from bottom
+    
+    if (currentScroll >= (maxScroll - delta)) {
+      // Load more when user is 200 pixels from bottom
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final classificationProvider = Provider.of<ClassificationProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if (!classificationProvider.isLoadingMore &&
+        classificationProvider.hasMore) {
+      final companyName = userProvider.userCompany ?? '3J Solutions';
+      classificationProvider.loadMore(
+        companyName: companyName,
+        limit: _pageSize,
+      ).catchError((e) {
+        print('Failed to load more history: $e');
+      });
+    }
   }
 
   @override
@@ -67,7 +110,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               await classificationProvider.refresh(companyName: companyName);
             },
             child: ListView(
-              children: classificationProvider.history.map((item) {
+              controller: _scrollController,
+              children: [
+                ...classificationProvider.history.map((item) {
                 // Get prediction ID
                 final predictionId = item['id'] as String? ?? '';
                 
@@ -157,7 +202,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     });
                   },
                 );
-              }).toList(),
+                }),
+                // Show loading indicator at bottom when loading more
+                if (classificationProvider.isLoadingMore)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                // Show message when no more items
+                if (!classificationProvider.hasMore && classificationProvider.history.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'No hay más elementos',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         },
