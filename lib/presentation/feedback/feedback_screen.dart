@@ -618,30 +618,40 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   children: [
                     Text('Seleccione el tipo correcto:', style: kRegularTextStyle),
                     const SizedBox(height: 12),
-                    RadioListTile<String>(
-                      title: const Text('Reciclable'),
-                      value: 'Reciclable',
+                    RadioGroup<String>(
                       groupValue: _selectedL1Class,
                       onChanged: (value) {
                         setState(() {
                           _selectedL1Class = value;
-                          // Reset L2 class when changing L1
-                          if (value != 'Reciclable') {
+                          // Reset L2 class when switching to NoReciclable
+                          if (value == 'NoReciclable') {
                             _selectedL2Class = null;
                           }
                         });
                       },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('No Reciclable'),
-                      value: 'NoReciclable',
-                      groupValue: _selectedL1Class,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedL1Class = value;
-                          _selectedL2Class = null; // No L2 class for NoReciclable
-                        });
-                      },
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: Radio<String>(value: 'Reciclable'),
+                            title: const Text('Reciclable'),
+                            onTap: () {
+                              setState(() {
+                                _selectedL1Class = 'Reciclable';
+                              });
+                            },
+                          ),
+                          ListTile(
+                            leading: Radio<String>(value: 'NoReciclable'),
+                            title: const Text('No Reciclable'),
+                            onTap: () {
+                              setState(() {
+                                _selectedL1Class = 'NoReciclable';
+                                _selectedL2Class = null;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -671,7 +681,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       Text('Seleccione la clase:', style: kRegularTextStyle),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: _selectedL2Class,
+                        key: ValueKey(_selectedL2Class),
+                        initialValue: _selectedL2Class,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Theme.of(context).colorScheme.surface,

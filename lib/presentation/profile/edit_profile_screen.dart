@@ -107,19 +107,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                           if (!mounted) return;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
                               content: Text('Perfil actualizado exitosamente'),
                               backgroundColor: Colors.green,
                             ),
                           );
 
-                          Navigator.pop(context);
+                          Navigator.pop(this.context);
                         } catch (e) {
                           if (!mounted) return;
 
                           final errorMessage = ErrorHandler.getErrorMessage(e);
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(this.context).showSnackBar(
                             SnackBar(
                               content: Text(errorMessage),
                               backgroundColor: Colors.red,

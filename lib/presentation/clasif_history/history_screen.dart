@@ -61,7 +61,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return RefreshIndicator(
             onRefresh: () async {
               // Get company name for refresh
-              final userProvider = Provider.of<UserProvider>(context, listen: false);
+              if (!mounted) return;
+              final userProvider = Provider.of<UserProvider>(this.context, listen: false);
               final companyName = userProvider.userCompany ?? '3J Solutions';
               await classificationProvider.refresh(companyName: companyName);
             },
@@ -134,7 +135,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   onTap: () {
                     // Navigate to feedback screen
                     Navigator.push(
-                      context,
+                      this.context,
                       MaterialPageRoute(
                         builder: (context) => FeedbackScreen(
                           predictionId: predictionId,
@@ -148,8 +149,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     ).then((feedbackSaved) {
                       // Refresh history if feedback was saved
-                      if (feedbackSaved == true) {
-                        final userProvider = Provider.of<UserProvider>(context, listen: false);
+                      if (feedbackSaved == true && mounted) {
+                        final userProvider = Provider.of<UserProvider>(this.context, listen: false);
                         final companyName = userProvider.userCompany ?? '3J Solutions';
                         classificationProvider.refresh(companyName: companyName);
                       }
