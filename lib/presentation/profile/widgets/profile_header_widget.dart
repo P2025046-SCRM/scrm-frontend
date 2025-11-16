@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:scrm/data/providers/user_provider.dart';
 
 import '../../../common/styles/text_styles.dart';
 
@@ -10,21 +11,39 @@ class ProfileHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: AssetImage('assets/profile_placeholder.png'),
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, _) {
+        final name = userProvider.userName ?? 'Usuario';
+        final email = userProvider.userEmail ?? '';
+        final company = userProvider.userCompany ?? '';
+        final profilePictureUrl = userProvider.profilePictureUrl;
+
+        return Center(
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: profilePictureUrl != null && profilePictureUrl.isNotEmpty
+                    ? NetworkImage(profilePictureUrl) as ImageProvider
+                    : AssetImage('assets/profile_placeholder.png'),
+                onBackgroundImageError: (exception, stackTrace) {
+                  // Fallback to placeholder if network image fails
+                },
+              ),
+              SizedBox(height: 8,),
+              Text(name, style: kSubtitleTextStyle,),
+              if (company.isNotEmpty) ...[
+                SizedBox(height: 4,),
+                Text(company, style: kDescriptionTextStyle,),
+              ],
+              if (email.isNotEmpty) ...[
+                SizedBox(height: 2,),
+                Text(email, style: kDescriptionTextStyle,),
+              ],
+            ],
           ),
-          SizedBox(height: 8,),
-          Text('Juan Perez', style: kSubtitleTextStyle,),
-          SizedBox(height: 4,),
-          Text('3J Solutions', style: kDescriptionTextStyle,),
-          SizedBox(height: 2,),
-          Text('juanperez@example.com', style: kDescriptionTextStyle,),
-        ],
-      ),
+        );
+      },
     );
   }
 }
