@@ -45,7 +45,38 @@ class TextFieldWidget extends StatelessWidget {
         hintStyle: kHintTextStyle,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 2,
+          ),
         ),
       ),
     );
