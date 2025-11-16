@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:scrm/data/providers/settings_provider.dart';
+import 'package:scrm/data/providers/user_provider.dart';
 import '../../common/styles/text_styles.dart';
 import 'widgets/logout_confirmation_widget.dart';
 import 'widgets/profile_actions_widget.dart';
@@ -12,6 +15,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch user data if not loaded or if name is missing (might be old cached data)
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.currentUser == null || userProvider.userName == null) {
+        userProvider.fetchUserData().catchError((e) {
+          print('Failed to fetch user data: $e');
+        });
+      }
+    });
+  }
 
   void _showLogoutConfirmation() {
     showModalBottomSheet(context: context,
@@ -61,14 +77,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             SizedBox(height: 8,),
-            Row(
-              children: [
-                SizedBox(width: 16,),
-                Text('Modo Claro/Oscuro', style: kRegularTextStyle,),
-                Spacer(),
-                Switch(value: false, onChanged: (value){}),
-                SizedBox(width: 16,),
-              ],
+            Consumer<SettingsProvider>(
+              builder: (context, settingsProvider, _) {
+                return Row(
+                  children: [
+                    SizedBox(width: 16,),
+                    Text('Modo Claro/Oscuro', style: kRegularTextStyle,),
+                    Spacer(),
+                    Switch(
+                      value: settingsProvider.isDarkMode,
+                      onChanged: (value) {
+                        settingsProvider.toggleTheme();
+                      },
+                    ),
+                    SizedBox(width: 16,),
+                  ],
+                );
+              },
             ),
             SizedBox(height: 20,),  // Adding some spacing instead
             ProfileActions(editProfile: (){
