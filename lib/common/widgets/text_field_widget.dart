@@ -27,7 +27,7 @@ class TextFieldWidget extends StatelessWidget {
       validator: validator,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).colorScheme.surface,
         hintText: text,
         hintStyle: kHintTextStyle,
         border: OutlineInputBorder(

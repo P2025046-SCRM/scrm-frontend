@@ -16,18 +16,22 @@ class ActionIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(130, 158, 158, 158),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? [] // No shadow in dark mode
+            : [
+                BoxShadow(
+                  color: const Color.fromARGB(130, 158, 158, 158),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
       ),
       child: IconButton(
         onPressed: isDisabled ? null : onPressed,
