@@ -7,7 +7,6 @@ const kTitleTextStyle = TextStyle(
 );
 
 const kRegularTextStyle = TextStyle(
-  color: Colors.black,
   fontSize: 16,
   fontFamily: 'Inter',
 );
