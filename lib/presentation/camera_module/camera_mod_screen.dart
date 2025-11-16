@@ -93,7 +93,6 @@ class _CameraModScreenState extends State<CameraModScreen> {
         final layer1Result = latestPrediction['layer1_result'] as Map<String, dynamic>?;
         final layer2Result = latestPrediction['layer2_result'] as Map<String, dynamic>?;
         
-        // Get image URL and append SAS token if needed
         String latestImagePath = latestPrediction['image_url'] as String? ?? '';
         if (latestImagePath.isNotEmpty && latestImagePath.startsWith('http')) {
           try {
@@ -162,7 +161,6 @@ class _CameraModScreenState extends State<CameraModScreen> {
     if (availableCams.isNotEmpty) {
       setState(() {
         cameras = availableCams;
-        // Start with the last camera (external/back camera) instead of the first
         selectedCameraIndex = availableCams.length - 1;
         camController = CameraController(
           availableCams[selectedCameraIndex],
@@ -209,6 +207,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
 
       // Save prediction to Firestore after successful classification
       try {
+        if (!mounted) return;
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         final currentUser = userProvider.currentUser;
         
@@ -221,6 +220,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
           print('Prediction saved successfully');
 
           // Refresh dashboard statistics for this company so data is up-to-date when user returns
+          if (!mounted) return;
           final companyName = currentUser['company'] as String? ?? '3J Solutions';
           final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
           await dashboardProvider.refresh(companyName: companyName);

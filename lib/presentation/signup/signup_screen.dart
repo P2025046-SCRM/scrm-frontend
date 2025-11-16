@@ -136,7 +136,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
                           if (success) {
                             // Fetch user data after successful signup
-                            final userProvider = Provider.of<UserProvider>(context, listen: false);
+                            if (!mounted) return;
+                            final userProvider = Provider.of<UserProvider>(this.context, listen: false);
                             try {
                               await userProvider.fetchUserData();
                             } catch (e) {
@@ -147,28 +148,32 @@ class _SignupScreenState extends State<SignupScreen> {
                             if (!mounted) return;
 
                             // Show success message
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cuenta creada exitosamente'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Cuenta creada exitosamente'),
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
 
                             // Navigate to dashboard after user data is loaded
                             if (mounted) {
-                              Navigator.pushReplacementNamed(context, 'dashboard');
+                              Navigator.pushReplacementNamed(this.context, 'dashboard');
                             }
                           } else {
                             // Show error message (already translated in AuthService)
-                            final errorMessage = authProvider.errorMessage ?? 'Error al crear la cuenta';
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(errorMessage),
-                                backgroundColor: Colors.red,
-                                duration: const Duration(seconds: 4),
-                              ),
-                            );
+                            if (mounted) {
+                              final errorMessage = authProvider.errorMessage ?? 'Error al crear la cuenta';
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                SnackBar(
+                                  content: Text(errorMessage),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                            }
                           }
                         }
                       },
