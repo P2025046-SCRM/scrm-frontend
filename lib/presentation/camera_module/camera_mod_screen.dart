@@ -1,12 +1,20 @@
-import 'dart:math';
+import 'dart:convert';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/item_thumbnail_widget.dart';
 import 'package:scrm/presentation/camera_module/widgets/action_button_widget.dart';
+import 'package:scrm/data/repositories/camera_repository.dart';
+import 'package:scrm/data/services/prediction_service.dart';
+import 'package:scrm/data/services/history_service.dart';
+import 'package:scrm/data/providers/dashboard_provider.dart';
+import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/waste_type_helper.dart';
 
 class CameraModScreen extends StatefulWidget {
   const CameraModScreen({super.key});
@@ -32,67 +40,16 @@ class _CameraModScreenState extends State<CameraModScreen> {
   XFile? imageToProcess;
   bool isProcessing = false;
 
+  final CameraRepository _cameraRepository = CameraRepository();
+  PredictionService? _predictionService; // Will be initialized from context
+  HistoryService? _historyService; // Will be initialized from context
+
   //state variables for classification result
-  String layer1 = 'Reciclable';
-  String layer2 = 'Retazo de Madera';
-  double confidence = 0.95;
-
-  //Random object for simmulating different results
-  final _random = Random();
-
-  //Dummy data for simulation
-  final List<Map<String, dynamic>> _dummyClassificationData = const [
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Retazo de Madera',
-      'confidence': 0.939,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Pieza Plástica',
-      'confidence': 0.888,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Metal',
-      'confidence': 0.751,
-    },
-    {
-      'layer1': 'No Reciclable',
-      'layer2': 'Contaminado',
-      'confidence': 0.962,
-    },
-    {
-      'layer1': 'No Reciclable',
-      'layer2': 'Residuo Orgánico',
-      'confidence': 0.869,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Biomasa',
-      'confidence': 0.778,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Retazo de Madera',
-      'confidence': 0.981,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Pieza Plástica',
-      'confidence': 0.884,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Metal',
-      'confidence': 0.91,
-    },
-    {
-      'layer1': 'Reciclable',
-      'layer2': 'Biomasa',
-      'confidence': 0.89,
-    },
-  ];
+  String? layer1; // null if no previous prediction
+  String? layer2; // null if no previous prediction
+  double? layer1Confidence; // null if no previous prediction
+  double? layer2Confidence; // null if no previous prediction
+  bool _hasLoadedLatestPrediction = false; // Track if we've attempted to load latest prediction
 
   @override
   void initState(){
@@ -100,31 +57,104 @@ class _CameraModScreenState extends State<CameraModScreen> {
     _setupCameraController();
   }
 
-  String _wasteType(String layer1, String layer2) {
-    String recycleType = '';
-    if (layer1 == 'No Reciclable') {
-      return layer1;
-    } else if (layer1 == 'Reciclable') {
-      switch (layer2) {
-        case 'Retazo de Madera':
-          recycleType = 'Interno';
-          break;
-        case 'Biomasa':
-          recycleType = 'Externo';
-          break;
-        case 'Metal':
-          recycleType = 'Externo';
-          break;
-        case 'Pieza Plástica':
-          recycleType = 'Interno';
-          break;
-        default:
-          recycleType = 'Desconocido'; // Added a default for safety
-      }
-      return '$layer1 - $recycleType';
-    } else {
-      return layer1;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize services from Provider
+    _predictionService = Provider.of<PredictionService>(context, listen: false);
+    _historyService = Provider.of<HistoryService>(context, listen: false);
+    
+    // Load latest prediction if not already loaded
+    if (!_hasLoadedLatestPrediction) {
+      _loadLatestPrediction();
+      _hasLoadedLatestPrediction = true;
     }
+  }
+
+  /// Load the latest prediction from Firestore for the current user's company
+  Future<void> _loadLatestPrediction() async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final companyName = userProvider.userCompany ?? '3J Solutions';
+      
+      if (_historyService == null) {
+        print('HistoryService not available');
+        return;
+      }
+
+      final latestPrediction = await _historyService!.getLatestPrediction(
+        companyName: companyName,
+      );
+
+      if (!mounted) return;
+
+      if (latestPrediction != null) {
+        // Extract layer1 and layer2 data
+        final layer1Result = latestPrediction['layer1_result'] as Map<String, dynamic>?;
+        final layer2Result = latestPrediction['layer2_result'] as Map<String, dynamic>?;
+        
+        // Get image URL and append SAS token if needed
+        String latestImagePath = latestPrediction['image_url'] as String? ?? '';
+        if (latestImagePath.isNotEmpty && latestImagePath.startsWith('http')) {
+          try {
+            final sasToken = dotenv.env['AZURE_CONTAINER_SAS_TOKEN'];
+            if (sasToken != null && sasToken.isNotEmpty) {
+              final separator = latestImagePath.contains('?') ? '&' : '?';
+              latestImagePath = '$latestImagePath$separator$sasToken';
+            }
+          } catch (e) {
+            print('Error appending SAS token to image URL: $e');
+          }
+        }
+
+        setState(() {
+          // Update image path
+          if (latestImagePath.isNotEmpty) {
+            imagePath = latestImagePath;
+            isCurrentImageAsset = false; // Network image
+          } else {
+            // Keep asset image if no image URL
+            imagePath = 'assets/sample_wood_image.jpg';
+            isCurrentImageAsset = true;
+          }
+
+          // Update classification results
+          layer1 = layer1Result?['prediction'] as String?;
+          layer1Confidence = (layer1Result?['confidence'] as num?)?.toDouble();
+          layer2 = layer2Result?['prediction'] as String?;
+          layer2Confidence = (layer2Result?['confidence'] as num?)?.toDouble();
+        });
+      } else {
+        // No previous prediction - keep asset image, clear text labels
+        setState(() {
+          imagePath = 'assets/sample_wood_image.jpg';
+          isCurrentImageAsset = true;
+          layer1 = null;
+          layer2 = null;
+          layer1Confidence = null;
+          layer2Confidence = null;
+        });
+      }
+    } catch (e) {
+      print('Error loading latest prediction: $e');
+      // On error, default to asset image with no labels
+      if (mounted) {
+        setState(() {
+          imagePath = 'assets/sample_wood_image.jpg';
+          isCurrentImageAsset = true;
+          layer1 = null;
+          layer2 = null;
+          layer1Confidence = null;
+          layer2Confidence = null;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    camController?.dispose();
+    super.dispose();
   }
 
   Future<void> _setupCameraController() async {
@@ -159,26 +189,47 @@ class _CameraModScreenState extends State<CameraModScreen> {
         isProcessing = true;
       });
 
-      // TODO: Once endpoint is implemented, send imageToProcess here
-      // For now, simulate processing and results
-      await Future.delayed(const Duration(seconds: 1));
+      final bytes = await imageFile.readAsBytes();
+      final String imageBase64 = base64Encode(bytes);
+      final classification =
+          await _cameraRepository.classifyImage(imageBase64);
 
-      // Simulate new classification results
-      final int randomIndex = _random.nextInt(_dummyClassificationData.length);
-      final Map<String, dynamic> randomResult = _dummyClassificationData[randomIndex];
+      if (!mounted) return;
 
-      //******************* */
-      
-      if (mounted) {
-        setState(() {
-          layer1 = randomResult['layer1'];
-          layer2 = randomResult['layer2'];
-          confidence = randomResult['confidence'];
-          isProcessing = false;
-        });
+      setState(() {
+        layer1 = classification.layer1Result.prediction;
+        layer2 = classification.layer2Result?.prediction ?? 'NN';
+        // Always keep layer1 confidence for first-layer result
+        layer1Confidence = classification.layer1Result.confidence;
+        // Store layer2 confidence separately (may be null if no second layer)
+        layer2Confidence = classification.layer2Result?.confidence;
+      });
+
+      // Save prediction to Firestore after successful classification
+      try {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final currentUser = userProvider.currentUser;
+        
+        if (currentUser != null && _predictionService != null) {
+          // Save prediction document
+          await _predictionService!.savePredictionForCurrentUser(
+            classificationResult: classification,
+            currentUserData: currentUser,
+          );
+          print('Prediction saved successfully');
+
+          // Refresh dashboard statistics for this company so data is up-to-date when user returns
+          final companyName = currentUser['company'] as String? ?? '3J Solutions';
+          final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+          await dashboardProvider.refresh(companyName: companyName);
+          print('Dashboard statistics refreshed for company: $companyName');
+        } else {
+          print('Warning: Could not save prediction - user data or prediction service not available');
+        }
+      } catch (e) {
+        // Log error but don't block the UI - prediction display is more important
+        print('Error saving prediction to Firestore or refreshing dashboard: $e');
       }
-
-      print('Image ready for processing: ${imageToProcess?.path}');
     } catch (e) {
       print('Error processing image: $e');
       if (mounted) {
@@ -188,6 +239,12 @@ class _CameraModScreenState extends State<CameraModScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
       }
     }
   }
@@ -271,8 +328,18 @@ class _CameraModScreenState extends State<CameraModScreen> {
   Widget build(BuildContext context) {
     double picSize = MediaQuery.sizeOf(context).width;
 
-    double showConfidence = (confidence * 100).roundToDouble();
-    String shownLabel = _wasteType(layer1, layer2);
+    // Convert confidences (0.0–1.0) to percentage with one decimal place
+    // Only calculate if confidence values exist
+    final String? layer1ConfidenceText = layer1Confidence != null 
+        ? (layer1Confidence! * 100).toStringAsFixed(1) 
+        : null;
+    final String? layer2ConfidenceText =
+        layer2Confidence != null ? (layer2Confidence! * 100).toStringAsFixed(1) : null;
+    // Interno/Externo label based on layer1/layer2 combination (helper as before)
+    // Only calculate if both layer1 and layer2 exist
+    final String? wasteLabel = (layer1 != null && layer2 != null) 
+        ? WasteTypeHelper.getWasteType(layer1!, layer2!) 
+        : null;
 
     return Scaffold(
       appBar: CustomAppbar(title: 'Clasificación de Residuos',
@@ -313,20 +380,38 @@ class _CameraModScreenState extends State<CameraModScreen> {
               child: Row(
                 children: [
                   ItemThumbnail(imagePath: imagePath, isAsset: isCurrentImageAsset,),
-                  SizedBox(width: 5,),
+                  const SizedBox(width: 5,),
+                  // Friendly label for layer1
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [ //added results shown logic
-                      Text('$shownLabel • $showConfidence%', style: kSubtitleTextStyle,),
-                      SizedBox(height: 10,),
-                      Text(layer2, style: kRegularTextStyle,),
+                    children: [
+                      // Only show layer1 result and confidence if data exists
+                      if (layer1 != null && layer1ConfidenceText != null)
+                        Text(
+                          '${layer1 == 'NoReciclable' ? 'No Reciclable' : layer1} • $layer1ConfidenceText%',
+                          style: kSubtitleTextStyle,
+                        ),
+                      // Only show layer2 line (class, Interno/Externo label, and confidence) when layer1 is Reciclable and data exists
+                      if (layer1 == 'Reciclable' && 
+                          layer2 != null && 
+                          layer2!.isNotEmpty && 
+                          layer2ConfidenceText != null && 
+                          wasteLabel != null) ...[
+                        if (layer1 != null && layer1ConfidenceText != null)
+                          const SizedBox(height: 10,),
+                        Text(
+                          '$layer2 • $wasteLabel • $layer2ConfidenceText%',
+                          style: kRegularTextStyle,
+                        ),
+                      ],
                     ],
                   ),
-                  Spacer(),
-                  cameras.length > 1
-                    ? ActionIconButton(onPressed: _switchCamera, icon: Icons.cameraswitch_outlined)
-                    : SizedBox(width: 1,),
-                  SizedBox(width: 8,),
+                  const Spacer(),
+                  if (cameras.length > 1)
+                    ActionIconButton(onPressed: _switchCamera, icon: Icons.cameraswitch_outlined)
+                  else
+                    const SizedBox(width: 1,),
+                  const SizedBox(width: 8,),
                 ],
               ),
             )

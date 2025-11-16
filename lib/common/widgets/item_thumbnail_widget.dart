@@ -13,12 +13,15 @@ class ItemThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     ImageProvider imageProvider;
 
-    if(isAsset) {
+    // Check if it's a network URL (http/https)
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      imageProvider = NetworkImage(imagePath);
+    } else if (isAsset) {
       imageProvider = AssetImage(imagePath);
     } else {
+      // Local file path
       imageProvider = FileImage(File(imagePath));
     }
 
@@ -31,6 +34,10 @@ class ItemThumbnail extends StatelessWidget {
         image: DecorationImage(
           image: imageProvider,
           fit: BoxFit.cover,
+          onError: (exception, stackTrace) {
+            // Handle image loading errors gracefully
+            print('Error loading image: $imagePath - $exception');
+          },
         ),
       ),
     );
