@@ -5,6 +5,7 @@ import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/bottom_nav_bar_widget.dart';
 import 'package:scrm/data/providers/classification_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/presentation/feedback/feedback_screen.dart';
 import 'widgets/history_item_widget.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -66,10 +67,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
             },
             child: ListView(
               children: classificationProvider.history.map((item) {
+                // Get prediction ID
+                final predictionId = item['id'] as String? ?? '';
+                
                 // Map Firestore prediction data to widget format
                 String imagePath = item['image_path'] as String? ?? 
                                   item['image_url'] as String? ?? 
                                   '';
+                
+                // Determine if image is asset before appending SAS token
+                final bool isAssetImage = imagePath.isEmpty || 
+                                         (!imagePath.startsWith('http') && !imagePath.startsWith('/'));
                 
                 // Append Azure SAS token to image URL if it's a network URL
                 if (imagePath.isNotEmpty && imagePath.startsWith('http')) {
@@ -90,7 +98,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 final layer2Result = item['layer2_result'] as Map<String, dynamic>?;
                 
                 final layer1 = layer1Result?['prediction'] as String? ?? 'Unknown';
-                final layer2 = layer2Result?['prediction'] as String? ?? 'Unknown';
+                final layer2 = layer2Result?['prediction'] as String?;
                 
                 // Get separate confidences for layer1 and layer2
                 final layer1Confidence = (layer1Result?['confidence'] as num?)?.toDouble() ?? 0.0;
@@ -116,12 +124,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 }
 
                 return HistoryListItem(
+                  predictionId: predictionId,
                   imagePath: imagePath,
                   layer1: layer1,
-                  layer2: layer2,
+                  layer2: layer2 ?? '',
                   classifTime: formattedTime,
                   layer1Confidence: layer1Confidence,
                   layer2Confidence: layer2Confidence,
+                  onTap: () {
+                    // Navigate to feedback screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FeedbackScreen(
+                          predictionId: predictionId,
+                          imagePath: imagePath,
+                          isAssetImage: isAssetImage,
+                          layer1: layer1,
+                          layer2: layer2,
+                          layer1Confidence: layer1Confidence,
+                          layer2Confidence: layer2Confidence,
+                        ),
+                      ),
+                    ).then((feedbackSaved) {
+                      // Refresh history if feedback was saved
+                      if (feedbackSaved == true) {
+                        final userProvider = Provider.of<UserProvider>(context, listen: false);
+                        final companyName = userProvider.userCompany ?? '3J Solutions';
+                        classificationProvider.refresh(companyName: companyName);
+                      }
+                    });
+                  },
                 );
               }).toList(),
             ),

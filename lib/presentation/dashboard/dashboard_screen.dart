@@ -351,9 +351,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ],
                             annotations: <GaugeAnnotation>[
                               GaugeAnnotation(
-                                widget: Text('${accuracy.toStringAsFixed(2)}%', style: kTitleTextStyle,),
+                                widget: Text('${accuracy.toStringAsFixed(2)}%', style: kSubtitleTextStyle,),
                                 angle: 90,
-                                positionFactor: 0.5
+                                positionFactor: 0.8
                               )
                             ]
                           )

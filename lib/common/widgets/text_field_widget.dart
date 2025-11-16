@@ -9,6 +9,8 @@ class TextFieldWidget extends StatelessWidget {
     required this.inputType,
     this.validator,
     this.obscureText = false,
+    this.maxLines,
+    this.minLines,
   });
 
   final TextEditingController textController;
@@ -16,15 +18,26 @@ class TextFieldWidget extends StatelessWidget {
   final TextInputType inputType;
   final String? Function(String?)? validator;
   final bool obscureText;
+  final int? maxLines;
+  final int? minLines;
 
   @override
   Widget build(BuildContext context) {
+    // Obscured fields cannot be multiline - must have maxLines = 1
+    final int? effectiveMaxLines = obscureText ? 1 : maxLines;
+    final int? effectiveMinLines = obscureText ? 1 : minLines;
+    
     return TextFormField(
       keyboardType: inputType,
       controller: textController,
       style: kRegularTextStyle,
       obscureText: obscureText,
       validator: validator,
+      maxLines: effectiveMaxLines,
+      minLines: effectiveMinLines,
+      textInputAction: effectiveMaxLines != null && effectiveMaxLines > 1 || effectiveMaxLines == null 
+          ? TextInputAction.newline 
+          : TextInputAction.done,
       decoration: InputDecoration(
         filled: true,
         fillColor: Theme.of(context).colorScheme.surface,

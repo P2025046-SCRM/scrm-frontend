@@ -142,6 +142,64 @@ class HistoryService {
       return null;
     }
   }
+
+  /// Get existing user feedback for a prediction document
+  /// 
+  /// [predictionId] - The document ID of the prediction
+  /// 
+  /// Returns the user feedback map, or null if not found
+  Future<Map<String, dynamic>?> getUserFeedback({
+    required String predictionId,
+  }) async {
+    try {
+      final doc = await _firestore
+          .collection('predictions')
+          .doc(predictionId)
+          .get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      final data = doc.data();
+      final userFeedback = data?['user_feedback'] as Map<String, dynamic>?;
+      return userFeedback;
+    } catch (e) {
+      throw Exception('Failed to get user feedback: $e');
+    }
+  }
+
+  /// Update user feedback for a prediction document
+  /// 
+  /// [predictionId] - The document ID of the prediction to update
+  /// [isCorrect] - Whether the prediction was correct
+  /// [correctL1Class] - Correct L1 class (Reciclable or NoReciclable) if incorrect
+  /// [correctL2Class] - Correct L2 class (Retazos, Biomasa, Metales, Plásticos) if Reciclable
+  /// [notes] - Optional notes from the user
+  Future<void> updateUserFeedback({
+    required String predictionId,
+    required bool isCorrect,
+    String? correctL1Class,
+    String? correctL2Class,
+    String? notes,
+  }) async {
+    try {
+      final userFeedback = <String, dynamic>{
+        'reviewed_at': FieldValue.serverTimestamp(),
+        'is_correct': isCorrect,
+        'correct_l1_class': correctL1Class,
+        'correct_l2_class': correctL2Class,
+        'notes': notes,
+      };
+
+      await _firestore
+          .collection('predictions')
+          .doc(predictionId)
+          .update({'user_feedback': userFeedback});
+    } catch (e) {
+      throw Exception('Failed to update user feedback: $e');
+    }
+  }
 }
 
 
