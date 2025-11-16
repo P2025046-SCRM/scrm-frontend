@@ -162,6 +162,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
     if (availableCams.isNotEmpty) {
       setState(() {
         cameras = availableCams;
+        // Start with the last camera (external/back camera) instead of the first
+        selectedCameraIndex = availableCams.length - 1;
         camController = CameraController(
           availableCams[selectedCameraIndex],
           ResolutionPreset.medium,
