@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:scrm/data/providers/auth_provider.dart';
+import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/constants.dart';
 
 import '../../../common/styles/text_styles.dart';
 import '../../../common/widgets/alt_button_widget.dart';
@@ -28,13 +32,24 @@ class LogoutConfirmationWidget extends StatelessWidget {
               Spacer(),
               HighlightedButton(
                 buttonText: 'Cerrar Sesión',
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context); // Close bottom sheet
-                  // add logic to clear user session here
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                  'login',
-                  (Route<dynamic> route) => false,
-                  ); // Remove all routes and go to login
+                  
+                  // Clear user data
+                  final userProvider = Provider.of<UserProvider>(context, listen: false);
+                  userProvider.clearUserData();
+                  
+                  // Logout from auth provider
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  await authProvider.logout();
+                  
+                  // Navigate to login
+                  if (context.mounted) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      AppRouteNames.login,
+                      (Route<dynamic> route) => false,
+                    );
+                  }
                 },
               ),
             ],
