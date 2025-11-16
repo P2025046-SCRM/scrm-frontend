@@ -9,7 +9,7 @@ import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/item_thumbnail_widget.dart';
 import 'package:scrm/presentation/camera_module/widgets/action_button_widget.dart';
-import 'package:scrm/data/repositories/camera_repository.dart';
+import 'package:scrm/data/services/classification_service.dart';
 import 'package:scrm/data/services/prediction_service.dart';
 import 'package:scrm/data/services/history_service.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
@@ -40,7 +40,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
   XFile? imageToProcess;
   bool isProcessing = false;
 
-  final CameraRepository _cameraRepository = CameraRepository();
+  final ClassificationService _classificationService = ClassificationService();
   PredictionService? _predictionService; // Will be initialized from context
   HistoryService? _historyService; // Will be initialized from context
 
@@ -192,7 +192,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
       final bytes = await imageFile.readAsBytes();
       final String imageBase64 = base64Encode(bytes);
       final classification =
-          await _cameraRepository.classifyImage(imageBase64);
+          await _classificationService.classifyImage(imageBase64);
 
       if (!mounted) return;
 

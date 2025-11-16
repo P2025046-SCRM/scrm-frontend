@@ -4,7 +4,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:scrm/data/models/camera_module/classification_result_model.dart';
 
-class CameraRepository {
+/// Service for image classification operations
+/// 
+/// Handles communication with the external WasteNet API for image classification
+class ClassificationService {
   //these are set from .env file
   final String? apiBaseUrl = dotenv.env['WFWASTENET_API_BASE_URL'];
   final String? apiBearerToken = dotenv.env['WFWASTENET_API_BEARER_TOKEN'];
@@ -51,3 +54,4 @@ class CameraRepository {
     }
   }
 }
+
