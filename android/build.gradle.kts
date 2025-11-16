@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Note: Google Services plugin is now managed via settings.gradle.kts (FlutterFire approach)
+    }
+}
+
 allprojects {
     repositories {
         google()

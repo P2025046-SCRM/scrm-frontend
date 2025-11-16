@@ -17,6 +17,10 @@ dependencies:
   flutter_dotenv: ^6.0.0
   http: ^1.6.0
   provider: ^6.1.5+1
+  shared_preferences: ^2.2.2
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
 
 dependency_overrides:
   vector_math: ^2.1.6 # Override to resolve version conflicts
