@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scrm/utils/constants.dart';
 import '../../common/styles/text_styles.dart';
 
 class HighlightedButton extends StatelessWidget {
@@ -13,7 +14,7 @@ class HighlightedButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: onPressed == null 
             ? Colors.grey 
-            : Colors.lightGreen,
+            : AppColors.primaryGreen,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         )

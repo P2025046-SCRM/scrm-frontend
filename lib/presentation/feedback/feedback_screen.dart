@@ -8,6 +8,7 @@ import 'package:scrm/common/widgets/text_field_widget.dart';
 import 'package:scrm/data/services/history_service.dart';
 import 'package:scrm/utils/waste_type_helper.dart';
 import 'package:scrm/utils/logger.dart';
+import 'package:scrm/utils/constants.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final String predictionId;
@@ -52,10 +53,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   // The 4 recyclable classes (display format)
   static const List<String> recyclableClasses = [
-    'Retazos',
-    'Biomasa',
-    'Metales',
-    'Plásticos',
+    WasteTypes.retazos,
+    WasteTypes.biomasa,
+    WasteTypes.metales,
+    'Plásticos', // Display format (different from model format)
   ];
 
   // Helper function to normalize display class name to model format
@@ -63,7 +64,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (displayClass == null) return null;
     // Map "Plásticos" (display) to "Plastico" (model format)
     if (displayClass == 'Plásticos') {
-      return 'Plastico';
+      return WasteTypes.plastico;
     }
     return displayClass;
   }
@@ -72,7 +73,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String? _modelFormatToDisplayFormat(String? modelClass) {
     if (modelClass == null) return null;
     // Map "Plastico" (model format) to "Plásticos" (display)
-    if (modelClass == 'Plastico') {
+    if (modelClass == WasteTypes.plastico) {
       return 'Plásticos';
     }
     return modelClass;
@@ -177,7 +178,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       }
       
       // Check if L2 class has changed (only relevant if Reciclable)
-      if (_selectedL1Class == 'Reciclable') {
+      if (_selectedL1Class == WasteTypes.reciclable) {
         final currentL2Normalized = _normalizeClassToModelFormat(_selectedL2Class);
         if (currentL2Normalized != _initialL2Class) {
           return true;
@@ -245,7 +246,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     }
 
     // Validation: if Reciclable is selected, must select L2 class
-    if (!_isCorrect && _selectedL1Class == 'Reciclable' && _selectedL2Class == null) {
+    if (!_isCorrect && _selectedL1Class == WasteTypes.reciclable && _selectedL2Class == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor seleccione una clase de reciclable'),
@@ -261,18 +262,18 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       
       // Normalize layer1 for comparison (handle "NoReciclable" vs display format)
       final selectedL1Normalized = _selectedL1Class;
-      final predictedL1Normalized = predictedL1 == 'NoReciclable' ? 'NoReciclable' : predictedL1;
+      final predictedL1Normalized = predictedL1 == WasteTypes.noReciclable ? WasteTypes.noReciclable : predictedL1;
       
       // Check if L1 matches
       bool l1Matches = selectedL1Normalized == predictedL1Normalized;
       
       // Check if L2 matches (if applicable)
       bool l2Matches = true; // Default to true if not applicable
-      if (selectedL1Normalized == 'Reciclable' && predictedL1Normalized == 'Reciclable') {
+      if (selectedL1Normalized == WasteTypes.reciclable && predictedL1Normalized == WasteTypes.reciclable) {
         // Normalize selected L2 class to model format for comparison
         final selectedL2Normalized = _normalizeClassToModelFormat(_selectedL2Class);
         l2Matches = selectedL2Normalized == predictedL2;
-      } else if (selectedL1Normalized != 'Reciclable' && predictedL1Normalized != 'Reciclable') {
+      } else if (selectedL1Normalized != WasteTypes.reciclable && predictedL1Normalized != WasteTypes.reciclable) {
         // Both are NoReciclable, so L2 doesn't matter
         l2Matches = true;
       } else {
@@ -311,7 +312,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Retroalimentación guardada exitosamente'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.recyclableGreen,
           ),
         );
         Navigator.of(context).pop(true); // Return true to indicate success
@@ -321,7 +322,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al guardar: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.nonRecyclableRed,
           ),
         );
       }
@@ -346,7 +347,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     // Format classification text
     final String classificationText = WasteTypeHelper.getWasteType(widget.layer1, widget.layer2 ?? '');
-    final String displayLayer1 = widget.layer1 == 'NoReciclable' ? 'No Reciclable' : widget.layer1;
+    final String displayLayer1 = widget.layer1 == WasteTypes.noReciclable ? 'No Reciclable' : widget.layer1;
     final String layer1ConfidenceText = (widget.layer1Confidence * 100).toStringAsFixed(1);
     final String? layer2ConfidenceText = widget.layer2Confidence != null
         ? (widget.layer2Confidence! * 100).toStringAsFixed(1)
@@ -468,8 +469,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           _existingFeedback!['is_correct'] == true ? 'Correcto' : 'Incorrecto',
                           style: kRegularTextStyle.copyWith(
                             color: _existingFeedback!['is_correct'] == true 
-                                ? Colors.green 
-                                : Colors.red,
+                                ? AppColors.recyclableGreen 
+                                : AppColors.nonRecyclableRed,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -480,7 +481,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       const SizedBox(height: 8),
                       if (_existingFeedback!['correct_l1_class'] != null) ...[
                         Text(
-                          'Clasificación Correcta: ${_existingFeedback!['correct_l1_class'] == 'NoReciclable' ? 'No Reciclable' : _existingFeedback!['correct_l1_class']}',
+                          'Clasificación Correcta: ${_existingFeedback!['correct_l1_class'] == WasteTypes.noReciclable ? 'No Reciclable' : _existingFeedback!['correct_l1_class']}',
                           style: kRegularTextStyle,
                         ),
                         if (_existingFeedback!['correct_l2_class'] != null) ...[
@@ -625,7 +626,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                         setState(() {
                           _selectedL1Class = value;
                           // Reset L2 class when switching to NoReciclable
-                          if (value == 'NoReciclable') {
+                          if (value == WasteTypes.noReciclable) {
                             _selectedL2Class = null;
                           }
                         });
@@ -633,20 +634,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       child: Column(
                         children: [
                           ListTile(
-                            leading: Radio<String>(value: 'Reciclable'),
+                            leading: Radio<String>(value: WasteTypes.reciclable),
                             title: const Text('Reciclable'),
                             onTap: () {
                               setState(() {
-                                _selectedL1Class = 'Reciclable';
+                                _selectedL1Class = WasteTypes.reciclable;
                               });
                             },
                           ),
                           ListTile(
-                            leading: Radio<String>(value: 'NoReciclable'),
+                            leading: Radio<String>(value: WasteTypes.noReciclable),
                             title: const Text('No Reciclable'),
                             onTap: () {
                               setState(() {
-                                _selectedL1Class = 'NoReciclable';
+                                _selectedL1Class = WasteTypes.noReciclable;
                                 _selectedL2Class = null;
                               });
                             },
@@ -659,7 +660,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               ),
 
               // Dropdown: Recyclable classes (only if Reciclable is selected)
-              if (_selectedL1Class == 'Reciclable') ...[
+              if (_selectedL1Class == WasteTypes.reciclable) ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),

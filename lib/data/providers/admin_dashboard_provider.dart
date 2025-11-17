@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/logger.dart';
+import '../../utils/constants.dart';
 
 /// Provider for admin dashboard statistics state management
 /// 
@@ -109,10 +110,10 @@ class AdminDashboardProvider extends ChangeNotifier {
 
       // Waste type distribution (layer2 classes) - global
       final Map<String, int> wasteTypeCounts = {
-        'Retazos': 0,
-        'Biomasa': 0,
-        'Metales': 0,
-        'Plastico': 0,
+        WasteTypes.retazos: 0,
+        WasteTypes.biomasa: 0,
+        WasteTypes.metales: 0,
+        WasteTypes.plastico: 0,
         'Plásticos': 0, // Handle both spellings
       };
 
@@ -137,7 +138,7 @@ class AdminDashboardProvider extends ChangeNotifier {
             final layer2Prediction = layer2Result['prediction'] as String? ?? '';
             // Handle both "Plastico" and "Plásticos" spellings
             final normalizedPrediction = layer2Prediction == 'Plásticos' || layer2Prediction == 'Plasticos' 
-                ? 'Plastico' 
+                ? WasteTypes.plastico 
                 : layer2Prediction;
             
             if (wasteTypeCounts.containsKey(normalizedPrediction)) {
@@ -181,7 +182,7 @@ class AdminDashboardProvider extends ChangeNotifier {
       }
 
       // Combine Plastico counts (handle both spellings)
-      final totalPlastico = (wasteTypeCounts['Plastico'] ?? 0) + (wasteTypeCounts['Plásticos'] ?? 0);
+      final totalPlastico = (wasteTypeCounts[WasteTypes.plastico] ?? 0) + (wasteTypeCounts['Plásticos'] ?? 0);
 
       // Calculate average inference times
       final avgTotalInferenceTime = inferenceTimeCount > 0 
@@ -204,9 +205,9 @@ class AdminDashboardProvider extends ChangeNotifier {
         'avg_l1_inference_time': avgL1InferenceTime,
         'avg_l2_inference_time': avgL2InferenceTime,
         'waste_type_distribution': {
-          'retazos': wasteTypeCounts['Retazos'] ?? 0,
-          'biomasa': wasteTypeCounts['Biomasa'] ?? 0,
-          'metales': wasteTypeCounts['Metales'] ?? 0,
+          'retazos': wasteTypeCounts[WasteTypes.retazos] ?? 0,
+          'biomasa': wasteTypeCounts[WasteTypes.biomasa] ?? 0,
+          'metales': wasteTypeCounts[WasteTypes.metales] ?? 0,
           'plasticos': totalPlastico,
         },
       };

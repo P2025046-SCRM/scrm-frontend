@@ -5,6 +5,7 @@ import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
 import 'package:scrm/utils/error_handler.dart';
+import 'package:scrm/utils/constants.dart';
 
 import '../../common/styles/text_styles.dart';
 import '../../common/widgets/text_field_widget.dart';
@@ -36,8 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese su contraseña';
     }
-    if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+    if (value.length < AppDefaults.minPasswordLength) {
+      return 'La contraseña debe tener al menos ${AppDefaults.minPasswordLength} caracteres';
     }
     return null;
   }
@@ -114,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Sesión iniciada exitosamente'),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: AppColors.recyclableGreen,
                                   duration: Duration(seconds: 2),
                                 ),
                               );
@@ -124,9 +125,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (mounted) {
                               final companyName = userProvider.userCompany;
                               if (companyName == 'Admin') {
-                                Navigator.pushReplacementNamed(this.context, 'admin_dashboard');
+                                Navigator.pushReplacementNamed(this.context, AppRouteNames.adminDashboard);
                               } else {
-                                Navigator.pushReplacementNamed(this.context, 'dashboard');
+                                Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
                               }
                             }
                           } else {
@@ -136,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 SnackBar(
                                   content: Text(errorMessage),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: AppColors.nonRecyclableRed,
                                   duration: const Duration(seconds: 4),
                                 ),
                               );
@@ -185,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
                               content: Text('Se ha enviado un email para restablecer su contraseña'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: AppColors.recyclableGreen,
                             ),
                           );
                         } catch (e) {
@@ -196,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(
                                 content: Text(errorMessage),
-                                backgroundColor: Colors.red,
+                                backgroundColor: AppColors.nonRecyclableRed,
                               ),
                             );
                           }
@@ -206,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: kTextButtonStyle,)),
                     SizedBox(height: 8,),
                     TextButton(onPressed: (){
-                      Navigator.pushReplacementNamed(context, 'signup');
+                      Navigator.pushReplacementNamed(context, AppRouteNames.signup);
                     },
                       child: Text('Crear una cuenta',
                         style: kTextButtonStyle,)),

@@ -19,6 +19,7 @@ import 'package:scrm/data/providers/settings_provider.dart';
 import 'package:scrm/data/providers/classification_provider.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
 import 'package:scrm/data/providers/admin_dashboard_provider.dart';
+import 'package:scrm/utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,12 +98,12 @@ class MainApp extends StatelessWidget {
         return MaterialApp(
           title: 'SCRM',
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
+            colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen),
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.lightGreen,
+              seedColor: AppColors.primaryGreen,
               brightness: Brightness.dark,
             ),
             useMaterial3: true,

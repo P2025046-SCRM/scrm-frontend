@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
+import 'package:scrm/utils/constants.dart';
 
 import '../../common/styles/text_styles.dart';
 import '../../common/widgets/hl_button_widget.dart';
@@ -26,8 +27,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese su nombre';
     }
-    if (value.length < 2) {
-      return 'El nombre debe tener al menos 2 caracteres';
+    if (value.length < AppDefaults.minNameLength) {
+      return 'El nombre debe tener al menos ${AppDefaults.minNameLength} caracteres';
     }
     return null;
   }
@@ -47,8 +48,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese una contraseña';
     }
-    if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+    if (value.length < AppDefaults.minPasswordLength) {
+      return 'La contraseña debe tener al menos ${AppDefaults.minPasswordLength} caracteres';
     }
     return null;
   }
@@ -153,7 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Cuenta creada exitosamente'),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: AppColors.recyclableGreen,
                                   duration: Duration(seconds: 2),
                                 ),
                               );
@@ -161,7 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                             // Navigate to dashboard after user data is loaded
                             if (mounted) {
-                              Navigator.pushReplacementNamed(this.context, 'dashboard');
+                              Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
                             }
                           } else {
                             // Show error message (already translated in AuthService)
@@ -170,7 +171,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 SnackBar(
                                   content: Text(errorMessage),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: AppColors.nonRecyclableRed,
                                   duration: const Duration(seconds: 4),
                                 ),
                               );
@@ -198,7 +199,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: Column(
                   children: [
                     TextButton(onPressed: (){
-                      Navigator.pushReplacementNamed(context, 'login');
+                      Navigator.pushReplacementNamed(context, AppRouteNames.login);
                     },
                       child: Text('Ya tienes una cuenta? Inicia sesión',
                         style: kTextButtonStyle,)),

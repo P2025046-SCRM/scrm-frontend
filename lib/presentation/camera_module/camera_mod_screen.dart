@@ -16,6 +16,7 @@ import 'package:scrm/data/providers/dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/waste_type_helper.dart';
 import 'package:scrm/utils/logger.dart';
+import 'package:scrm/utils/constants.dart';
 
 class CameraModScreen extends StatefulWidget {
   const CameraModScreen({super.key});
@@ -239,7 +240,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al procesar la imagen: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.nonRecyclableRed,
           ),
         );
       }
@@ -272,7 +273,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al seleccionar la imagen: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.nonRecyclableRed,
           ),
         );
       }
@@ -293,7 +294,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al tomar la foto: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.nonRecyclableRed,
           ),
         );
       }
@@ -391,11 +392,11 @@ class _CameraModScreenState extends State<CameraModScreen> {
                       // Only show layer1 result and confidence if data exists
                       if (layer1 != null && layer1ConfidenceText != null)
                         Text(
-                          '${layer1 == 'NoReciclable' ? 'No Reciclable' : layer1} • $layer1ConfidenceText%',
+                          '${layer1 == WasteTypes.noReciclable ? 'No Reciclable' : layer1} • $layer1ConfidenceText%',
                           style: kSubtitleTextStyle,
                         ),
                       // Only show layer2 line (class, Interno/Externo label, and confidence) when layer1 is Reciclable and data exists
-                      if (layer1 == 'Reciclable' && 
+                      if (layer1 == WasteTypes.reciclable && 
                           layer2 != null && 
                           layer2!.isNotEmpty && 
                           layer2ConfidenceText != null && 

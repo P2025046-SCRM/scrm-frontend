@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/data/providers/admin_dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/constants.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../common/widgets/appbar_widget.dart';
 import 'widgets/indicator_widget.dart';
+import 'widgets/kpi_card_widget.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -77,9 +79,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             minimum: 0,
                             maximum: 100,
                             ranges: <GaugeRange>[
-                              GaugeRange(startValue: 0, endValue: 60, color: Colors.red),
+                              GaugeRange(startValue: 0, endValue: 60, color: AppColors.nonRecyclableRed),
                               GaugeRange(startValue: 60, endValue: 85, color: Colors.orange),
-                              GaugeRange(startValue: 85, endValue: 100, color: Colors.green),
+                              GaugeRange(startValue: 85, endValue: 100, color: AppColors.recyclableGreen),
                             ],
                             pointers: <GaugePointer>[
                               NeedlePointer(value: accuracy, needleLength: 0.95, needleEndWidth: 7,)
@@ -101,7 +103,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         const Indicator(
-                          color: Colors.red,
+                          color: AppColors.nonRecyclableRed,
                           text: 'Bajo (<60%)',
                           isSquare: false,
                         ),
@@ -113,7 +115,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         SizedBox(height: 12),
                         const Indicator(
-                          color: Colors.green,
+                          color: AppColors.recyclableGreen,
                           text: 'Alto (>85%)',
                           isSquare: false,
                         ),                        
@@ -150,7 +152,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Total Inference
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.averageTotalInferenceTime.toStringAsFixed(2),
                     label: 'Promedio de Tiempo Total de Inferencia',
                     isDouble: true,
@@ -161,7 +163,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Total Inference Layer 1
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.averageLayer1InferenceTime.toStringAsFixed(2),
                     label: 'Promedio de Tiempo de Inferencia de Capa 1',
                     isDouble: true,
@@ -172,7 +174,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Total Inference Layer 2
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.averageLayer2InferenceTime.toStringAsFixed(2),
                     label: 'Promedio de Tiempo de Inferencia de Capa 2',
                     isDouble: true,
@@ -212,25 +214,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
                             Indicator(
-                              color: Color.fromARGB(255, 193, 123, 25),
-                              text: 'Retazos',
+                              color: AppColors.retazosOrange,
+                              text: WasteTypes.retazos,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 71, 178, 29),
-                              text: 'Biomasa',
+                              color: AppColors.biomasaGreen,
+                              text: WasteTypes.biomasa,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 146, 155, 170),
-                              text: 'Metales',
+                              color: AppColors.metalesGray,
+                              text: WasteTypes.metales,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 6, 17, 167),
+                              color: AppColors.plasticosBlue,
                               text: 'Plásticos',
                               isSquare: false,
                             ),
@@ -288,11 +290,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 BarChartRodData(
                                   toY: barData.isEmpty ? 0.0 : barData[i],
                                   color: [
-                                    const Color.fromARGB(255, 193, 123, 25),
-                                    const Color.fromARGB(255, 71, 178, 29),
-                                    const Color.fromARGB(255, 146, 155, 170),
-                                    const Color.fromARGB(255, 6, 17, 167),
-                                  ][i % 4], // Assign a different color for each bar
+                                    AppColors.retazosOrange,
+                                    AppColors.biomasaGreen,
+                                    AppColors.metalesGray,
+                                    AppColors.plasticosBlue,
+                                  ][i % 4],
                                   width: 25,
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(3),
@@ -322,7 +324,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       children: [
                         Text('Residuos Reutilizables por Tipo (Global)', style: kRegularTextStyle,),
                         Text(
-                          'Retazos: 0%  |  Biomasa: 0%  |  Metales: 0%  |  Plásticos: 0%',
+                          '${WasteTypes.retazos}: 0%  |  ${WasteTypes.biomasa}: 0%  |  ${WasteTypes.metales}: 0%  |  Plásticos: 0%',
                           style: kDescriptionTextStyle,
                         ),
                       ],
@@ -333,9 +335,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     children: [
                       Text('Residuos Reutilizables por Tipo (Global)', style: kRegularTextStyle,),
                       Text(
-                        'Retazos: ${(percentages[0] / total * 100).toStringAsFixed(0)}%  |  '
-                        'Biomasa: ${(percentages[1] / total * 100).toStringAsFixed(0)}%  |  '
-                        'Metales: ${(percentages[2] / total * 100).toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.retazos}: ${(percentages[0] / total * 100).toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.biomasa}: ${(percentages[1] / total * 100).toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.metales}: ${(percentages[2] / total * 100).toStringAsFixed(0)}%  |  '
                         'Plásticos: ${(percentages[3] / total * 100).toStringAsFixed(0)}%',
                         style: kDescriptionTextStyle,
                       ),
@@ -347,7 +349,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Total Predictions
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.totalPredictions.toString(),
                     label: 'Predicciones Totales',
                   );
@@ -357,7 +359,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Active Companies
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.totalCompanies.toString(),
                     label: 'Compañias Activas',
                   );
@@ -367,7 +369,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               // Total Users
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
-                  return _buildKPICard(
+                  return KPICard(
                     count: adminDashboardProvider.totalUsers.toString(),
                     label: 'Total de Usuarios',
                   );
@@ -377,66 +379,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildKPICard({
-    required String count,
-    required String label,
-    bool isDouble = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: List<BoxShadow>.generate(
-          3,
-          (index) => BoxShadow(
-            color: const Color.fromARGB(33, 0, 0, 0),
-            blurRadius: 2 * (index + 1),
-            offset: Offset(0, 2 * (index + 1)),
-          ),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(count, style: kTitleTextStyle,),
-              if (isDouble)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6, right: 2),
-                  child: Text(
-                    's',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: 2,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              label,
-              style: kRegularTextStyle,
-              textAlign: TextAlign.center,
-              softWrap: true,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }

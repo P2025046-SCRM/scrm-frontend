@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scrm/utils/constants.dart';
 
 const kTitleTextStyle = TextStyle(
   fontSize: 22,
@@ -12,7 +13,7 @@ const kRegularTextStyle = TextStyle(
 );
 
 const kHintTextStyle = TextStyle(
-  color: Color(0xFF757575),
+  color: AppColors.textHint,
   fontSize: 16,
   fontFamily: 'Inter',
 );
@@ -27,7 +28,7 @@ const kAltRegularTextStyle = TextStyle(
 const kTextButtonStyle = TextStyle(
   fontFamily: 'Inter',
   fontSize: 14,
-  color: Color.fromARGB(255, 99, 135, 99),
+  color: AppColors.accentGreen,
 );
 
 const kSubtitleTextStyle = TextStyle(
@@ -39,5 +40,5 @@ const kSubtitleTextStyle = TextStyle(
 const kDescriptionTextStyle = TextStyle(
   fontFamily: 'Inter',
   fontSize: 12,
-  color: Color.fromARGB(255, 99, 135, 99),
+  color: AppColors.accentGreen,
 );
