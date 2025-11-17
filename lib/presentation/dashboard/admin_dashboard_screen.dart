@@ -1,15 +1,15 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/data/providers/admin_dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
-import 'package:scrm/utils/constants.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:scrm/utils/constants.dart' show WasteTypes;
 
 import '../../common/widgets/appbar_widget.dart';
-import 'widgets/indicator_widget.dart';
 import 'widgets/kpi_card_widget.dart';
+import 'widgets/gauge_chart_card_widget.dart';
+import 'widgets/bar_chart_card_widget.dart';
+import 'widgets/percentage_display_widget.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -49,102 +49,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
                   if (adminDashboardProvider.isLoading && adminDashboardProvider.statistics == null) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   final accuracy = adminDashboardProvider.globalAccuracyPercentage;
                   
-                  return Container(
-                height: 200,
-                width: double.infinity,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 220,
-                      child: SfRadialGauge(
-                        axes: <RadialAxis>[
-                          RadialAxis(                      
-                            minimum: 0,
-                            maximum: 100,
-                            ranges: <GaugeRange>[
-                              GaugeRange(startValue: 0, endValue: 60, color: AppColors.nonRecyclableRed),
-                              GaugeRange(startValue: 60, endValue: 85, color: Colors.orange),
-                              GaugeRange(startValue: 85, endValue: 100, color: AppColors.recyclableGreen),
-                            ],
-                            pointers: <GaugePointer>[
-                              NeedlePointer(value: accuracy, needleLength: 0.95, needleEndWidth: 7,)
-                            ],
-                            annotations: <GaugeAnnotation>[
-                              GaugeAnnotation(
-                                widget: Text('${accuracy.toStringAsFixed(2)}%', style: kSubtitleTextStyle,),
-                                angle: 90,
-                                positionFactor: 0.8
-                              )
-                            ]
-                          )
-                        ],
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        const Indicator(
-                          color: AppColors.nonRecyclableRed,
-                          text: 'Bajo (<60%)',
-                          isSquare: false,
-                        ),
-                        SizedBox(height: 12),
-                        const Indicator(
-                          color: Colors.orange,
-                          text: 'Medio (<85%)',
-                          isSquare: false,
-                        ),
-                        SizedBox(height: 12),
-                        const Indicator(
-                          color: AppColors.recyclableGreen,
-                          text: 'Alto (>85%)',
-                          isSquare: false,
-                        ),                        
-                      ],
-                    ),
-                  ],
-                ),
-                  );
+                  return GaugeChartCard(accuracy: accuracy);
                 },
               ),
               SizedBox(height: 8,),
               Consumer<AdminDashboardProvider>(
                 builder: (context, adminDashboardProvider, _) {
                   final accuracy = adminDashboardProvider.globalAccuracyPercentage;
-                  String accuracyLevel;
-                  if (accuracy >= 85) {
-                    accuracyLevel = 'Alto';
-                  } else if (accuracy >= 60) {
-                    accuracyLevel = 'Medio';
-                  } else {
-                    accuracyLevel = 'Bajo';
-                  }
                   
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Porcentaje de Aciertos (Global)', style: kRegularTextStyle,),
-                      Text('$accuracyLevel (${accuracy.toStringAsFixed(2)}%)', style: kDescriptionTextStyle,),
-                    ],
+                  return AccuracyPercentageDisplayWidget(
+                    accuracy: accuracy,
+                    showGlobalLabel: true,
                   );
                 },
               ),
@@ -187,129 +106,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 builder: (context, adminDashboardProvider, _) {
                   final barData = adminDashboardProvider.wasteTypeDistribution;
                   
-                  return Container(
-                height: 220,
-                width: double.infinity,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                    ),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Indicator(
-                              color: AppColors.retazosOrange,
-                              text: WasteTypes.retazos,
-                              isSquare: false,
-                            ),
-                            SizedBox(width: 16),
-                            Indicator(
-                              color: AppColors.biomasaGreen,
-                              text: WasteTypes.biomasa,
-                              isSquare: false,
-                            ),
-                            SizedBox(width: 16),
-                            Indicator(
-                              color: AppColors.metalesGray,
-                              text: WasteTypes.metales,
-                              isSquare: false,
-                            ),
-                            SizedBox(width: 16),
-                            Indicator(
-                              color: AppColors.plasticosBlue,
-                              text: 'Plásticos',
-                              isSquare: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 140,
-                      child: BarChart(
-                        BarChartData(
-                          borderData: FlBorderData(
-                            show: false,
-                          ),
-                          titlesData: FlTitlesData(
-                            show: true,
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 50,
-                                getTitlesWidget: (value, meta) {
-                                  if (value % 10 == 0) {
-                                    return Text(
-                                      value.toInt().toString(),
-                                      style: TextStyle(fontSize: 12),
-                                    );
-                                  }
-                                  return SizedBox.shrink();
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: false,
-                              ),
-                            ),
-                          ),
-                          gridData: const FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                          ),
-                          maxY: barData.isEmpty ? 40 : (barData.reduce((a, b) => a > b ? a : b) * 1.2).ceil().toDouble(),
-                          minY: 0,
-                          barGroups: List.generate(
-                            barData.length,
-                            (i) => BarChartGroupData(
-                              x: i,
-                              barRods: [
-                                BarChartRodData(
-                                  toY: barData.isEmpty ? 0.0 : barData[i],
-                                  color: [
-                                    AppColors.retazosOrange,
-                                    AppColors.biomasaGreen,
-                                    AppColors.metalesGray,
-                                    AppColors.plasticosBlue,
-                                  ][i % 4],
-                                  width: 25,
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(3),
-                                    topRight: Radius.circular(3),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                  );
+                  return BarChartCard(barData: barData);
                 },
               ),
               SizedBox(height: 8,),
@@ -330,18 +127,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ],
                     );
                   }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Residuos Reutilizables por Tipo (Global)', style: kRegularTextStyle,),
-                      Text(
-                        '${WasteTypes.retazos}: ${(percentages[0] / total * 100).toStringAsFixed(0)}%  |  '
-                        '${WasteTypes.biomasa}: ${(percentages[1] / total * 100).toStringAsFixed(0)}%  |  '
-                        '${WasteTypes.metales}: ${(percentages[2] / total * 100).toStringAsFixed(0)}%  |  '
-                        'Plásticos: ${(percentages[3] / total * 100).toStringAsFixed(0)}%',
-                        style: kDescriptionTextStyle,
-                      ),
-                    ],
+                  
+                  final percentageMap = {
+                    'retazos': (percentages[0] / total * 100),
+                    'biomasa': (percentages[1] / total * 100),
+                    'metales': (percentages[2] / total * 100),
+                    'plasticos': (percentages[3] / total * 100),
+                  };
+                  
+                  return PercentageDisplayWidget(
+                    title: 'Residuos Reutilizables por Tipo',
+                    percentages: percentageMap,
+                    showGlobalLabel: true,
                   );
                 },
               ),

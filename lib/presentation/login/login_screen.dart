@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scrm/common/widgets/hl_button_widget.dart';
+import 'package:scrm/common/widgets/loading_button_widget.dart';
 import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
@@ -83,81 +83,68 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 24,),
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
-                  return SizedBox(
-                    height: 48,
-                    width: double.infinity,
-                    child: HighlightedButton(
-                      buttonText: authProvider.isLoading ? 'Iniciando Sesión...' : 'Iniciar Sesión',
-                      onPressed: authProvider.isLoading ? () {} : () async {
-                        if (_formKey.currentState!.validate()) {
-                          final success = await authProvider.login(
-                            emailController.text.trim(),
-                            passwordController.text,
-                          );
+                  return LoadingButton(
+                    buttonText: 'Iniciar Sesión',
+                    loadingText: 'Iniciando Sesión...',
+                    isLoading: authProvider.isLoading,
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final success = await authProvider.login(
+                          emailController.text.trim(),
+                          passwordController.text,
+                        );
+
+                        if (!mounted) return;
+
+                        if (success) {
+                          // Fetch user data after successful login
+                          if (!mounted) return;
+                          final userProvider = Provider.of<UserProvider>(this.context, listen: false);
+                          try {
+                            await userProvider.fetchUserData();
+                          } catch (e, stackTrace) {
+                            // Log error but don't prevent login
+                            AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after login');
+                          }
 
                           if (!mounted) return;
 
-                          if (success) {
-                            // Fetch user data after successful login
-                            if (!mounted) return;
-                            final userProvider = Provider.of<UserProvider>(this.context, listen: false);
-                            try {
-                              await userProvider.fetchUserData();
-                            } catch (e, stackTrace) {
-                              // Log error but don't prevent login
-                              AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after login');
-                            }
+                          // Show success message
+                          if (mounted) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Sesión iniciada exitosamente'),
+                                backgroundColor: AppColors.recyclableGreen,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
 
-                            if (!mounted) return;
-
-                            // Show success message
-                            if (mounted) {
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Sesión iniciada exitosamente'),
-                                  backgroundColor: AppColors.recyclableGreen,
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-
-                            // Navigate if user is admin or not
-                            if (mounted) {
-                              final companyName = userProvider.userCompany;
-                              if (companyName == 'Admin') {
-                                Navigator.pushReplacementNamed(this.context, AppRouteNames.adminDashboard);
-                              } else {
-                                Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
-                              }
-                            }
-                          } else {
-                            // Show error message (already translated in AuthService)
-                            if (mounted) {
-                              final errorMessage = authProvider.errorMessage ?? 'Error al iniciar sesión';
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                SnackBar(
-                                  content: Text(errorMessage),
-                                  backgroundColor: AppColors.nonRecyclableRed,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
+                          // Navigate if user is admin or not
+                          if (mounted) {
+                            final companyName = userProvider.userCompany;
+                            if (companyName == 'Admin') {
+                              Navigator.pushReplacementNamed(this.context, AppRouteNames.adminDashboard);
+                            } else {
+                              Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
                             }
                           }
+                        } else {
+                          // Show error message (already translated in AuthService)
+                          if (mounted) {
+                            final errorMessage = authProvider.errorMessage ?? 'Error al iniciar sesión';
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMessage),
+                                backgroundColor: AppColors.nonRecyclableRed,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          }
                         }
-                      },
-                    ),
+                      }
+                    },
                   );
-                },
-              ),
-              Consumer<AuthProvider>(
-                builder: (context, authProvider, _) {
-                  if (authProvider.isLoading) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: const CircularProgressIndicator(),
-                    );
-                  }
-                  return SizedBox.shrink();
                 },
               ),
               SizedBox(height: 16,),

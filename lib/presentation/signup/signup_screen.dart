@@ -6,7 +6,7 @@ import 'package:scrm/utils/logger.dart';
 import 'package:scrm/utils/constants.dart';
 
 import '../../common/styles/text_styles.dart';
-import '../../common/widgets/hl_button_widget.dart';
+import '../../common/widgets/loading_button_widget.dart';
 import '../../common/widgets/text_field_widget.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -121,77 +121,64 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(height: 24,),
               Consumer<AuthProvider>(
                 builder: (context, authProvider, _) {
-                  return SizedBox(
-                    height: 48,
-                    width: double.infinity,
-                    child: HighlightedButton(
-                      buttonText: authProvider.isLoading ? 'Creando Cuenta...' : 'Crear Cuenta',
-                      onPressed: authProvider.isLoading ? () {} : () async {
-                        if (_formKey.currentState!.validate()) {
-                          final success = await authProvider.signup(
-                            name: nameController.text.trim(),
-                            email: emailController.text.trim(),
-                            password: passwordController.text,
-                          );
+                  return LoadingButton(
+                    buttonText: 'Crear Cuenta',
+                    loadingText: 'Creando Cuenta...',
+                    isLoading: authProvider.isLoading,
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final success = await authProvider.signup(
+                          name: nameController.text.trim(),
+                          email: emailController.text.trim(),
+                          password: passwordController.text,
+                        );
+
+                        if (!mounted) return;
+
+                        if (success) {
+                          // Fetch user data after successful signup
+                          if (!mounted) return;
+                          final userProvider = Provider.of<UserProvider>(this.context, listen: false);
+                          try {
+                            await userProvider.fetchUserData();
+                          } catch (e, stackTrace) {
+                            // Log error but don't prevent signup
+                            AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after signup');
+                          }
 
                           if (!mounted) return;
 
-                          if (success) {
-                            // Fetch user data after successful signup
-                            if (!mounted) return;
-                            final userProvider = Provider.of<UserProvider>(this.context, listen: false);
-                            try {
-                              await userProvider.fetchUserData();
-                            } catch (e, stackTrace) {
-                              // Log error but don't prevent signup
-                              AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after signup');
-                            }
+                          // Show success message
+                          if (mounted) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Cuenta creada exitosamente'),
+                                backgroundColor: AppColors.recyclableGreen,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
 
-                            if (!mounted) return;
-
-                            // Show success message
-                            if (mounted) {
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Cuenta creada exitosamente'),
-                                  backgroundColor: AppColors.recyclableGreen,
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-
-                            // Navigate to dashboard after user data is loaded
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
-                            }
-                          } else {
-                            // Show error message (already translated in AuthService)
-                            if (mounted) {
-                              final errorMessage = authProvider.errorMessage ?? 'Error al crear la cuenta';
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                SnackBar(
-                                  content: Text(errorMessage),
-                                  backgroundColor: AppColors.nonRecyclableRed,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
-                            }
+                          // Navigate to dashboard after user data is loaded
+                          if (mounted) {
+                            Navigator.pushReplacementNamed(this.context, AppRouteNames.dashboard);
+                          }
+                        } else {
+                          // Show error message (already translated in AuthService)
+                          if (mounted) {
+                            final errorMessage = authProvider.errorMessage ?? 'Error al crear la cuenta';
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMessage),
+                                backgroundColor: AppColors.nonRecyclableRed,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
                           }
                         }
-                      },
-                    ),
+                      }
+                    },
                   );
-                },
-              ),
-              Consumer<AuthProvider>(
-                builder: (context, authProvider, _) {
-                  if (authProvider.isLoading) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: const CircularProgressIndicator(),
-                    );
-                  }
-                  return SizedBox.shrink();
                 },
               ),
               SizedBox(height: 16,),
