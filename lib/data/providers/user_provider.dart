@@ -4,7 +4,7 @@ import '../../utils/logger.dart';
 
 /// Provider for user profile state management
 /// 
-/// Manages current user data, profile updates, and profile picture uploads
+/// Manages current user data and profile updates
 class UserProvider extends ChangeNotifier {
   final UserService _userService;
 
@@ -40,9 +40,6 @@ class UserProvider extends ChangeNotifier {
 
   /// Get current user company
   String? get userCompany => _currentUser?['company'] as String?;
-
-  /// Get current user profile picture URL
-  String? get profilePictureUrl => _currentUser?['profile_picture'] as String?;
 
   /// Check if user data is loading
   bool get isLoading => _isLoading;
@@ -103,27 +100,6 @@ class UserProvider extends ChangeNotifier {
         name: name,
         email: email,
       );
-      _isLoading = false;
-      _errorMessage = null;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = e.toString();
-      notifyListeners();
-      rethrow;
-    }
-  }
-
-  /// Upload profile picture
-  /// 
-  /// [imageBase64] - Base64 encoded image string
-  Future<void> uploadProfilePicture(String imageBase64) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      _currentUser = await _userService.uploadProfilePicture(imageBase64);
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
