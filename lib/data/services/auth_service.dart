@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scrm/data/services/storage_service.dart';
+import 'package:scrm/utils/logger.dart';
 
 /// Service for authentication operations using Firebase Auth
 /// 
@@ -59,9 +60,9 @@ class AuthService {
           // If Firestore doc doesn't exist yet, use displayName as name fallback
           userData['name'] = user.displayName ?? '';
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         // If Firestore read fails, continue with basic user data
-        print('Failed to fetch user data from Firestore: $e');
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data from Firestore during login');
         // Use displayName as name fallback
         userData['name'] = user.displayName ?? '';
       }
@@ -137,9 +138,9 @@ class AuthService {
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-      } catch (e) {
+      } catch (e, stackTrace) {
         // If Firestore write fails, continue with basic user creation
-        print('Failed to save user data to Firestore: $e');
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to save user data to Firestore during signup');
       }
 
       // Return user data
@@ -165,8 +166,8 @@ class AuthService {
             userData['name'] = name;
           }
         }
-      } catch (e) {
-        print('Failed to fetch user data from Firestore: $e');
+      } catch (e, stackTrace) {
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data from Firestore during signup');
       }
 
       return userData;
@@ -198,8 +199,8 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _firebaseAuth.signOut();
-    } catch (e) {
-      print('Firebase logout error: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Firebase logout error');
     } finally {
       // Clear local storage
       await _storageService.clearStorage();
@@ -225,8 +226,8 @@ class AuthService {
       }
       
       return token;
-    } catch (e) {
-      print('Failed to get ID token: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to get ID token');
       return null;
     }
   }

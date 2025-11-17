@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../utils/logger.dart';
 
 /// Provider for dashboard statistics state management
 /// 
@@ -169,11 +170,11 @@ class DashboardProvider extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
-      print('Error fetching dashboard statistics: $e');
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error fetching dashboard statistics');
     }
   }
 

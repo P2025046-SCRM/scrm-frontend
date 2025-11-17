@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../utils/logger.dart';
 
 class ItemThumbnail extends StatelessWidget {
   const ItemThumbnail({
@@ -36,7 +37,7 @@ class ItemThumbnail extends StatelessWidget {
           fit: BoxFit.cover,
           onError: (exception, stackTrace) {
             // Handle image loading errors gracefully
-            print('Error loading image: $imagePath - $exception');
+            AppLogger.logError(exception, stackTrace: stackTrace, reason: 'Error loading image: $imagePath');
           },
         ),
       ),

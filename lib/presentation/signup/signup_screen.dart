@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/logger.dart';
 
 import '../../common/styles/text_styles.dart';
 import '../../common/widgets/hl_button_widget.dart';
@@ -140,9 +141,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             final userProvider = Provider.of<UserProvider>(this.context, listen: false);
                             try {
                               await userProvider.fetchUserData();
-                            } catch (e) {
+                            } catch (e, stackTrace) {
                               // Log error but don't prevent signup
-                              print('Failed to fetch user data: $e');
+                              AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after signup');
                             }
 
                             if (!mounted) return;

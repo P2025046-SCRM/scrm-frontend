@@ -5,6 +5,7 @@ import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/bottom_nav_bar_widget.dart';
 import 'package:scrm/data/providers/classification_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/logger.dart';
 import 'package:scrm/presentation/feedback/feedback_screen.dart';
 import 'widgets/history_item_widget.dart';
 
@@ -24,21 +25,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch initial history batch on screen load
+      // Always fetch fresh data to set up pagination properly
       final classificationProvider = Provider.of<ClassificationProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       
       // Get company name from user data
       final companyName = userProvider.userCompany ?? '3J Solutions';
       
-      if (classificationProvider.history.isEmpty) {
-        classificationProvider.fetchHistory(
-          companyName: companyName,
-          limit: _pageSize,
-        ).catchError((e) {
-          print('Failed to fetch history: $e');
-        });
-      }
+      // Always fetch fresh data to ensure pagination works
+      // If cached history exists, it will be shown immediately, but we still need fresh data for pagination
+      classificationProvider.fetchHistory(
+        companyName: companyName,
+        limit: _pageSize,
+        forceRefresh: false, // Don't force refresh on initial load, but still fetch if pagination not set up
+      ).catchError((e, stackTrace) {
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch history');
+      });
     });
   }
 
@@ -56,7 +58,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final currentScroll = _scrollController.position.pixels;
     final delta = 200; // Trigger when 200 pixels from bottom
     
-    if (currentScroll >= (maxScroll - delta)) {
+    // Only trigger if we're near the bottom and not already at the bottom
+    if (maxScroll > 0 && currentScroll >= (maxScroll - delta)) {
       // Load more when user is 200 pixels from bottom
       _loadMore();
     }
@@ -72,8 +75,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       classificationProvider.loadMore(
         companyName: companyName,
         limit: _pageSize,
-      ).catchError((e) {
-        print('Failed to load more history: $e');
+      ).catchError((e, stackTrace) {
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to load more history');
       });
     }
   }
@@ -107,7 +110,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               if (!mounted) return;
               final userProvider = Provider.of<UserProvider>(this.context, listen: false);
               final companyName = userProvider.userCompany ?? '3J Solutions';
-              await classificationProvider.refresh(companyName: companyName);
+              // Force refresh to reset pagination and get fresh data
+              await classificationProvider.fetchHistory(
+                companyName: companyName,
+                limit: _pageSize,
+                forceRefresh: true,
+              );
             },
             child: ListView(
               controller: _scrollController,
@@ -134,8 +142,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       final separator = imagePath.contains('?') ? '&' : '?';
                       imagePath = '$imagePath$separator$sasToken';
                     }
-                  } catch (e) {
-                    print('Error appending SAS token to image URL: $e');
+                  } catch (e, stackTrace) {
+                    AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
                   }
                 }
                 
@@ -197,7 +205,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       if (feedbackSaved == true && mounted) {
                         final userProvider = Provider.of<UserProvider>(this.context, listen: false);
                         final companyName = userProvider.userCompany ?? '3J Solutions';
-                        classificationProvider.refresh(companyName: companyName);
+                        // Force refresh to get updated data
+                        classificationProvider.fetchHistory(
+                          companyName: companyName,
+                          limit: _pageSize,
+                          forceRefresh: true,
+                        );
                       }
                     });
                   },

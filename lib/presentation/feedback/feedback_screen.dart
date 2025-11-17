@@ -7,6 +7,7 @@ import 'package:scrm/common/widgets/hl_button_widget.dart';
 import 'package:scrm/common/widgets/text_field_widget.dart';
 import 'package:scrm/data/services/history_service.dart';
 import 'package:scrm/utils/waste_type_helper.dart';
+import 'package:scrm/utils/logger.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final String predictionId;
@@ -94,8 +95,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       
       final localDateTime = dateTime.toLocal();
       return 'Revisado: ${localDateTime.day}/${localDateTime.month}/${localDateTime.year} ${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      print('Error formatting reviewed_at date: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error formatting reviewed_at date');
       return '';
     }
   }
@@ -147,8 +148,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           });
         }
       }
-    } catch (e) {
-      print('Error loading existing feedback: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error loading existing feedback');
       if (mounted) {
         setState(() {
           _isLoadingFeedback = false;
@@ -363,8 +364,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           if (sasToken != null && sasToken.isNotEmpty) {
             imagePath = '$imagePath?$sasToken';
           }
-        } catch (e) {
-          print('Error appending SAS token to image URL: $e');
+        } catch (e, stackTrace) {
+          AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
         }
       }
     }

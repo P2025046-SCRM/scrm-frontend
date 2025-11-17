@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/logger.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../common/widgets/appbar_widget.dart';
@@ -33,8 +34,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // After user data is loaded, fetch statistics with company name
           final companyName = userProvider.userCompany ?? '3J Solutions';
           dashboardProvider.fetchStatistics(companyName: companyName);
-        }).catchError((e) {
-          print('Failed to fetch user data: $e');
+        }).catchError((e, stackTrace) {
+          AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data in dashboard');
           // Still try to fetch statistics with default company
           dashboardProvider.fetchStatistics(companyName: '3J Solutions');
         });

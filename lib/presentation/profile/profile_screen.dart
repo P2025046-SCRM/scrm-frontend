@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/data/providers/settings_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/logger.dart';
 import '../../common/styles/text_styles.dart';
 import 'widgets/logout_confirmation_widget.dart';
 import 'widgets/profile_actions_widget.dart';
@@ -22,8 +23,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Fetch user data if not loaded or if name is missing (might be old cached data)
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       if (userProvider.currentUser == null || userProvider.userName == null) {
-        userProvider.fetchUserData().catchError((e) {
-          print('Failed to fetch user data: $e');
+        userProvider.fetchUserData().catchError((e, stackTrace) {
+          AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data in profile screen');
         });
       }
     });
