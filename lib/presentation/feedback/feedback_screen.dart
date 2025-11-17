@@ -3,12 +3,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
+import 'package:scrm/common/widgets/card_container_widget.dart';
 import 'package:scrm/common/widgets/hl_button_widget.dart';
 import 'package:scrm/common/widgets/text_field_widget.dart';
 import 'package:scrm/data/services/history_service.dart';
 import 'package:scrm/utils/waste_type_helper.dart';
 import 'package:scrm/utils/logger.dart';
 import 'package:scrm/utils/constants.dart';
+import 'widgets/existing_feedback_card_widget.dart';
+import 'widgets/image_display_card_widget.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final String predictionId;
@@ -387,153 +390,25 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Image display - top center
-            Container(
-              width: double.infinity,
+            ImageDisplayCard(
+              imagePath: finalImagePath,
+              isNetworkImage: isNetworkImage,
               height: 250,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                  ),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: isNetworkImage
-                    ? Image.network(
-                        finalImagePath,
-                        width: double.infinity,
-                        height: 250,
-                        fit: BoxFit.fill,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(child: CircularProgressIndicator());
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Icon(Icons.error, size: 50, color: Colors.grey),
-                          );
-                        },
-                      )
-                    : Image.asset(
-                        finalImagePath,
-                        width: double.infinity,
-                        height: 250,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Icon(Icons.error, size: 50, color: Colors.grey),
-                          );
-                        },
-                      ),
-              ),
             ),
 
             // Existing feedback display (only show if feedback exists and is not just default)
             if (_existingFeedback != null && 
                 (_existingFeedback!['is_correct'] != true || 
                  _existingFeedback!['notes'] != null ||
-                 _existingFeedback!['correct_l1_class'] != null)) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: List<BoxShadow>.generate(
-                    3,
-                    (index) => BoxShadow(
-                      color: const Color.fromARGB(33, 0, 0, 0),
-                      blurRadius: 2 * (index + 1),
-                      offset: Offset(0, 2 * (index + 1)),
-                    ),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Revisión del Operador', style: kSubtitleTextStyle),
-                    const SizedBox(height: 12),
-                    // Status: Correcto/Incorrecto
-                    Row(
-                      children: [
-                        Text('Estado: ', style: kRegularTextStyle),
-                        Text(
-                          _existingFeedback!['is_correct'] == true ? 'Correcto' : 'Incorrecto',
-                          style: kRegularTextStyle.copyWith(
-                            color: _existingFeedback!['is_correct'] == true 
-                                ? AppColors.recyclableGreen 
-                                : AppColors.nonRecyclableRed,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Correct classification if Incorrecto
-                    if (_existingFeedback!['is_correct'] != true) ...[
-                      const SizedBox(height: 8),
-                      if (_existingFeedback!['correct_l1_class'] != null) ...[
-                        Text(
-                          'Clasificación Correcta: ${_existingFeedback!['correct_l1_class'] == WasteTypes.noReciclable ? 'No Reciclable' : _existingFeedback!['correct_l1_class']}',
-                          style: kRegularTextStyle,
-                        ),
-                        if (_existingFeedback!['correct_l2_class'] != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Clase: ${_modelFormatToDisplayFormat(_existingFeedback!['correct_l2_class']) ?? _existingFeedback!['correct_l2_class']}',
-                            style: kRegularTextStyle,
-                          ),
-                        ],
-                      ],
-                    ],
-                    // Reviewed at date
-                    if (_existingFeedback!['reviewed_at'] != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _formatReviewedAtDate(_existingFeedback!['reviewed_at']),
-                        style: kDescriptionTextStyle,
-                      ),
-                    ],
-                    // Notes if exists
-                    if (_existingFeedback!['notes'] != null && 
-                        (_existingFeedback!['notes'] as String).isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text('Notas:', style: kRegularTextStyle),
-                      const SizedBox(height: 4),
-                      Text(
-                        _existingFeedback!['notes'] as String,
-                        style: kDescriptionTextStyle,
-                      ),
-                    ],
-                  ],
-                ),
+                 _existingFeedback!['correct_l1_class'] != null))
+              ExistingFeedbackCard(
+                existingFeedback: _existingFeedback!,
+                modelFormatToDisplayFormat: _modelFormatToDisplayFormat,
+                formatReviewedAtDate: _formatReviewedAtDate,
               ),
-            ],
 
             // Classification display
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                  ),
-                ),
-              ),
+            CardContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -560,22 +435,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
 
             // Toggle: Is correct?
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                  ),
-                ),
-              ),
+            CardContainer(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -599,22 +459,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
             // Radio buttons: Reciclable or No Reciclable (only if incorrect)
             if (!_isCorrect) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: List<BoxShadow>.generate(
-                    3,
-                    (index) => BoxShadow(
-                      color: const Color.fromARGB(33, 0, 0, 0),
-                      blurRadius: 2 * (index + 1),
-                      offset: Offset(0, 2 * (index + 1)),
-                    ),
-                  ),
-                ),
+              CardContainer(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -661,22 +506,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
               // Dropdown: Recyclable classes (only if Reciclable is selected)
               if (_selectedL1Class == WasteTypes.reciclable) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: List<BoxShadow>.generate(
-                      3,
-                      (index) => BoxShadow(
-                        color: const Color.fromARGB(33, 0, 0, 0),
-                        blurRadius: 2 * (index + 1),
-                        offset: Offset(0, 2 * (index + 1)),
-                      ),
-                    ),
-                  ),
+                CardContainer(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -712,22 +542,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ],
 
             // Notes field
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: List<BoxShadow>.generate(
-                  3,
-                  (index) => BoxShadow(
-                    color: const Color.fromARGB(33, 0, 0, 0),
-                    blurRadius: 2 * (index + 1),
-                    offset: Offset(0, 2 * (index + 1)),
-                  ),
-                ),
-              ),
+            CardContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

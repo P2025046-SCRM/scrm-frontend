@@ -7,8 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
-import 'package:scrm/common/widgets/item_thumbnail_widget.dart';
 import 'package:scrm/presentation/camera_module/widgets/action_button_widget.dart';
+import 'package:scrm/presentation/camera_module/widgets/classification_result_display_widget.dart';
 import 'package:scrm/data/services/classification_service.dart';
 import 'package:scrm/data/services/prediction_service.dart';
 import 'package:scrm/data/services/history_service.dart';
@@ -379,45 +379,16 @@ class _CameraModScreenState extends State<CameraModScreen> {
               ),
             ),
             SizedBox(height: 20,),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Row(
-                children: [
-                  ItemThumbnail(imagePath: imagePath, isAsset: isCurrentImageAsset,),
-                  const SizedBox(width: 5,),
-                  // Friendly label for layer1
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Only show layer1 result and confidence if data exists
-                      if (layer1 != null && layer1ConfidenceText != null)
-                        Text(
-                          '${layer1 == WasteTypes.noReciclable ? 'No Reciclable' : layer1} • $layer1ConfidenceText%',
-                          style: kSubtitleTextStyle,
-                        ),
-                      // Only show layer2 line (class, Interno/Externo label, and confidence) when layer1 is Reciclable and data exists
-                      if (layer1 == WasteTypes.reciclable && 
-                          layer2 != null && 
-                          layer2!.isNotEmpty && 
-                          layer2ConfidenceText != null && 
-                          wasteLabel != null) ...[
-                        if (layer1 != null && layer1ConfidenceText != null)
-                          const SizedBox(height: 10,),
-                        Text(
-                          '$layer2 • $wasteLabel • $layer2ConfidenceText%',
-                          style: kRegularTextStyle,
-                        ),
-                      ],
-                    ],
-                  ),
-                  const Spacer(),
-                  if (cameras.length > 1)
-                    ActionIconButton(onPressed: _switchCamera, icon: Icons.cameraswitch_outlined)
-                  else
-                    const SizedBox(width: 1,),
-                  const SizedBox(width: 8,),
-                ],
-              ),
+            ClassificationResultDisplay(
+              imagePath: imagePath,
+              isCurrentImageAsset: isCurrentImageAsset,
+              layer1: layer1,
+              layer2: layer2,
+              layer1ConfidenceText: layer1ConfidenceText,
+              layer2ConfidenceText: layer2ConfidenceText,
+              wasteLabel: wasteLabel,
+              hasMultipleCameras: cameras.length > 1,
+              onSwitchCamera: cameras.length > 1 ? _switchCamera : null,
             )
           ],
         ),

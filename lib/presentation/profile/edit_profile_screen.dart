@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/widgets/text_field_widget.dart';
+import 'package:scrm/common/widgets/loading_button_widget.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/error_handler.dart';
 import 'package:scrm/utils/constants.dart';
 import '../../common/styles/text_styles.dart';
-import '../../common/widgets/hl_button_widget.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -93,55 +93,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Spacer(),
             Consumer<UserProvider>(
               builder: (context, userProvider, _) {
-                return SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: HighlightedButton(
-                    buttonText: userProvider.isLoading ? 'Guardando...' : 'Guardar Cambios',
-                    onPressed: userProvider.isLoading ? () {} : () async {
-                      if (_formKey.currentState!.validate()) {
-                        try {
-                          await userProvider.updateProfile(
-                            name: nameController.text.trim(),
-                            email: emailController.text.trim(),
-                          );
+                return LoadingButton(
+                  buttonText: 'Guardar Cambios',
+                  loadingText: 'Guardando...',
+                  isLoading: userProvider.isLoading,
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      try {
+                        await userProvider.updateProfile(
+                          name: nameController.text.trim(),
+                          email: emailController.text.trim(),
+                        );
 
-                          if (!mounted) return;
+                        if (!mounted) return;
 
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Perfil actualizado exitosamente'),
-                              backgroundColor: AppColors.recyclableGreen,
-                            ),
-                          );
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Perfil actualizado exitosamente'),
+                            backgroundColor: AppColors.recyclableGreen,
+                          ),
+                        );
 
-                          Navigator.pop(this.context);
-                        } catch (e) {
-                          if (!mounted) return;
+                        Navigator.pop(this.context);
+                      } catch (e) {
+                        if (!mounted) return;
 
-                          final errorMessage = ErrorHandler.getErrorMessage(e);
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            SnackBar(
-                              content: Text(errorMessage),
-                              backgroundColor: AppColors.nonRecyclableRed,
-                            ),
-                          );
-                        }
+                        final errorMessage = ErrorHandler.getErrorMessage(e);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(
+                            content: Text(errorMessage),
+                            backgroundColor: AppColors.nonRecyclableRed,
+                          ),
+                        );
                       }
-                    },
-                  ),
+                    }
+                  },
                 );
-              },
-            ),
-            Consumer<UserProvider>(
-              builder: (context, userProvider, _) {
-                if (userProvider.isLoading) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: const CircularProgressIndicator(),
-                  );
-                }
-                return SizedBox.shrink();
               },
             ),
             SizedBox(height: 12,),

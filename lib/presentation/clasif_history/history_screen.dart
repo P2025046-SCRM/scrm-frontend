@@ -8,6 +8,7 @@ import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
 import 'package:scrm/presentation/feedback/feedback_screen.dart';
 import 'widgets/history_item_widget.dart';
+import 'widgets/empty_state_widget.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -92,16 +93,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
 
           if (classificationProvider.history.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No hay historial disponible', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                ],
-              ),
-            );
+            return const EmptyStateWidget();
           }
 
           return RefreshIndicator(
@@ -218,8 +210,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 }),
                 // Show loading indicator at bottom when loading more
                 if (classificationProvider.isLoadingMore)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
                     child: Center(child: CircularProgressIndicator()),
                   ),
                 // Show message when no more items
