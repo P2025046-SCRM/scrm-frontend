@@ -1,3 +1,5 @@
+import 'package:scrm/utils/logger.dart';
+
 /// Centralized error handling utility
 /// 
 /// Provides user-friendly error messages and error logging
@@ -75,13 +77,13 @@ class ErrorHandler {
 
   /// Log error for debugging
   /// 
-  /// In production, this could send errors to a logging service
-  static void logError(dynamic error, [StackTrace? stackTrace]) {
-    print('Error: $error');
-    if (stackTrace != null) {
-      print('Stack trace: $stackTrace');
-    }
-    // TODO: Integrate with logging service (e.g., Sentry, Firebase Crashlytics)
+  /// Uses Firebase Crashlytics for error logging in production
+  static Future<void> logError(dynamic error, [StackTrace? stackTrace]) async {
+    await AppLogger.logError(
+      error,
+      stackTrace: stackTrace,
+      reason: 'Error logged via ErrorHandler',
+    );
   }
 
   /// Get error code from exception

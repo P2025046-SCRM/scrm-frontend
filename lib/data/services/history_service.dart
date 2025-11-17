@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scrm/data/services/storage_service.dart';
+import 'package:scrm/utils/logger.dart';
 
 /// Service for classification history operations
 /// 
@@ -149,8 +150,8 @@ class HistoryService {
         'timestamp': timestampString,
         'created_at_timestamp': timestampString,
       };
-    } catch (e) {
-      print('Error fetching latest prediction: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error fetching latest prediction');
       return null;
     }
   }

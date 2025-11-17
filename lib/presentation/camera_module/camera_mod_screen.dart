@@ -15,6 +15,7 @@ import 'package:scrm/data/services/history_service.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/waste_type_helper.dart';
+import 'package:scrm/utils/logger.dart';
 
 class CameraModScreen extends StatefulWidget {
   const CameraModScreen({super.key});
@@ -78,7 +79,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
       final companyName = userProvider.userCompany ?? '3J Solutions';
       
       if (_historyService == null) {
-        print('HistoryService not available');
+        AppLogger.logWarning('HistoryService not available');
         return;
       }
 
@@ -101,8 +102,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
               final separator = latestImagePath.contains('?') ? '&' : '?';
               latestImagePath = '$latestImagePath$separator$sasToken';
             }
-          } catch (e) {
-            print('Error appending SAS token to image URL: $e');
+          } catch (e, stackTrace) {
+            AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
           }
         }
 
@@ -134,8 +135,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
           layer2Confidence = null;
         });
       }
-    } catch (e) {
-      print('Error loading latest prediction: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error loading latest prediction');
       // On error, default to asset image with no labels
       if (mounted) {
         setState(() {
@@ -172,8 +173,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
           return;
         }
         setState(() {});
-      }).catchError((Object e){
-        print(e);
+      }).catchError((Object e, StackTrace stackTrace) {
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error initializing camera controller');
       });
     }
   }
@@ -217,23 +218,23 @@ class _CameraModScreenState extends State<CameraModScreen> {
             classificationResult: classification,
             currentUserData: currentUser,
           );
-          print('Prediction saved successfully');
+          AppLogger.logSuccess('Prediction saved successfully');
 
           // Refresh dashboard statistics for this company so data is up-to-date when user returns
           if (!mounted) return;
           final companyName = currentUser['company'] as String? ?? '3J Solutions';
           final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
           await dashboardProvider.refresh(companyName: companyName);
-          print('Dashboard statistics refreshed for company: $companyName');
+          AppLogger.logInfo('Dashboard statistics refreshed for company: $companyName');
         } else {
-          print('Warning: Could not save prediction - user data or prediction service not available');
+          AppLogger.logWarning('Could not save prediction - user data or prediction service not available');
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         // Log error but don't block the UI - prediction display is more important
-        print('Error saving prediction to Firestore or refreshing dashboard: $e');
+        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error saving prediction to Firestore or refreshing dashboard');
       }
-    } catch (e) {
-      print('Error processing image: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error processing image');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -263,10 +264,10 @@ class _CameraModScreenState extends State<CameraModScreen> {
       
       if (pickedFile != null) {
         await _processImage(pickedFile);
-        print('Image picked: $imagePath');
+        AppLogger.logInfo('Image picked: $imagePath');
       }
-    } catch (e) {
-      print('Error picking image: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error picking image');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -286,8 +287,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
     try {
       final XFile photo = await camController!.takePicture();
       await _processImage(photo);
-    } catch (e) {
-      print('Error taking picture: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error taking picture');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -321,8 +322,8 @@ class _CameraModScreenState extends State<CameraModScreen> {
       await camController?.initialize();
       if (!mounted) return;
       setState(() {});
-    } catch (e) {
-      print('Error initializing camera: $e');
+    } catch (e, stackTrace) {
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error initializing camera');
     }
   }
 

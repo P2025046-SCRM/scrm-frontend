@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:scrm/common/widgets/hl_button_widget.dart';
 import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
+import 'package:scrm/utils/logger.dart';
 import 'package:scrm/utils/error_handler.dart';
 
 import '../../common/styles/text_styles.dart';
@@ -101,9 +102,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             final userProvider = Provider.of<UserProvider>(this.context, listen: false);
                             try {
                               await userProvider.fetchUserData();
-                            } catch (e) {
+                            } catch (e, stackTrace) {
                               // Log error but don't prevent login
-                              print('Failed to fetch user data: $e');
+                              AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data after login');
                             }
 
                             if (!mounted) return;

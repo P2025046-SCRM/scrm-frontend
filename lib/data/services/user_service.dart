@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scrm/data/services/storage_service.dart';
+import 'package:scrm/utils/logger.dart';
 
 /// Helper function to convert Firestore Timestamp objects to JSON-serializable format
 /// Converts Timestamp to ISO 8601 string format
@@ -44,7 +45,7 @@ class UserService {
           final userDoc = await _firestore.collection('users').doc(user.uid).get();
           if (userDoc.exists) {
             final firestoreData = userDoc.data() as Map<String, dynamic>;
-            print('Firestore user data: $firestoreData'); // Debug: Check what's in Firestore
+            AppLogger.logDebug('Firestore user data: $firestoreData');
             
             // Build data map: Firestore data first (has 'name'), then Firebase Auth data as fallback
             final data = <String, dynamic>{
@@ -60,12 +61,12 @@ class UserService {
             // Ensure 'name' exists - prioritize Firestore 'name'
             if (!data.containsKey('name') || data['name'] == null || (data['name'] as String).isEmpty) {
               data['name'] = user.displayName ?? '';
-              print('Warning: name not found in Firestore, using displayName: ${data['name']}');
+              AppLogger.logWarning('name not found in Firestore, using displayName: ${data['name']}');
             } else {
-              print('Using name from Firestore: ${data['name']}');
+              AppLogger.logDebug('Using name from Firestore: ${data['name']}');
             }
             
-            print('Final user data: $data'); // Debug: Check final data structure
+            AppLogger.logDebug('Final user data: $data');
             
             // Convert Timestamp objects to JSON-serializable format before caching
             final serializableData = _convertTimestampsToJson(data);
@@ -76,7 +77,7 @@ class UserService {
             // Return original data (with Timestamps) for immediate use
             return data;
           } else {
-            print('Warning: Firestore user document does not exist for UID: ${user.uid}');
+            AppLogger.logWarning('Firestore user document does not exist for UID: ${user.uid}');
           }
         }
       }

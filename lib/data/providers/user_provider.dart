@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../services/user_service.dart';
+import '../../utils/logger.dart';
 
 /// Provider for user profile state management
 /// 
@@ -23,14 +24,14 @@ class UserProvider extends ChangeNotifier {
   /// Returns 'name' from Firestore if available, otherwise falls back to 'displayName' from Firebase Auth
   String? get userName {
     if (_currentUser == null) {
-      print('userName: currentUser is null');
+      AppLogger.logDebug('userName: currentUser is null');
       return null;
     }
     // Try 'name' first (from Firestore), then 'displayName' (from Firebase Auth)
     final name = _currentUser!['name'] as String?;
     final displayName = _currentUser!['displayName'] as String?;
     final result = name ?? displayName;
-    print('userName getter: name=$name, displayName=$displayName, result=$result'); // Debug
+    AppLogger.logDebug('userName getter: name=$name, displayName=$displayName, result=$result');
     return result;
   }
 
@@ -53,11 +54,11 @@ class UserProvider extends ChangeNotifier {
   void _loadCachedUserData() {
     final cachedData = _userService.getCachedUserData();
     if (cachedData != null) {
-      print('Loaded cached user data: $cachedData'); // Debug
-      print('Cached name: ${cachedData['name']}'); // Debug
+      AppLogger.logDebug('Loaded cached user data: $cachedData');
+      AppLogger.logDebug('Cached name: ${cachedData['name']}');
       _currentUser = cachedData;
     } else {
-      print('No cached user data found'); // Debug
+      AppLogger.logDebug('No cached user data found');
     }
     notifyListeners();
   }
@@ -70,16 +71,16 @@ class UserProvider extends ChangeNotifier {
 
     try {
       final fetchedUser = await _userService.getCurrentUser();
-      print('Fetched user data: $fetchedUser'); // Debug: Check fetched data
-      print('Fetched name: ${fetchedUser['name']}'); // Debug: Check name field
+      AppLogger.logDebug('Fetched user data: $fetchedUser');
+      AppLogger.logDebug('Fetched name: ${fetchedUser['name']}');
       _currentUser = fetchedUser;
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _isLoading = false;
       _errorMessage = e.toString();
-      print('Error fetching user data: $e'); // Debug: Check for errors
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error fetching user data');
       notifyListeners();
       rethrow;
     }

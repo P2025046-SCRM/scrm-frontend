@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../services/history_service.dart';
+import '../../utils/logger.dart';
 
 /// Provider for classification history state management
 /// 
@@ -39,10 +40,14 @@ class ClassificationProvider extends ChangeNotifier {
   int get historyCount => _history.length;
 
   /// Load cached history from local storage
+  /// Note: Cached history is only used for immediate display.
+  /// Fresh data should be fetched to enable pagination.
   void _loadCachedHistory() {
     final cachedHistory = _historyService.getCachedHistory();
-    if (cachedHistory != null) {
+    if (cachedHistory != null && cachedHistory.isNotEmpty) {
       _history = cachedHistory;
+      // Don't set _lastDocument from cache since we need fresh snapshots
+      // Pagination will be set up when fresh data is fetched
       notifyListeners();
     }
   }
@@ -57,8 +62,12 @@ class ClassificationProvider extends ChangeNotifier {
     int? limit,
     bool forceRefresh = false,
   }) async {
-    // Return cached data if available and not forcing refresh
-    if (!forceRefresh && _history.isNotEmpty) {
+    // Always fetch fresh data to set up pagination properly
+    // Cached history is only for immediate display, not for pagination
+    final needsPaginationSetup = _lastDocument == null;
+    
+    if (!forceRefresh && !needsPaginationSetup) {
+      // If we already have pagination set up and not forcing refresh, don't refetch
       return;
     }
 
@@ -66,6 +75,11 @@ class ClassificationProvider extends ChangeNotifier {
     _errorMessage = null;
     _hasMore = true;
     _lastDocument = null;
+    // Clear history when forcing refresh or when pagination is not set up
+    // This ensures fresh data replaces cached data
+    if (forceRefresh || needsPaginationSetup) {
+      _history = [];
+    }
     notifyListeners();
 
     try {
@@ -95,11 +109,11 @@ class ClassificationProvider extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = null;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _isLoading = false;
       _errorMessage = e.toString();
       notifyListeners();
-      print('Error fetching history: $e');
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error fetching history');
       rethrow;
     }
   }
@@ -156,11 +170,11 @@ class ClassificationProvider extends ChangeNotifier {
       _isLoadingMore = false;
       _errorMessage = null;
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _isLoadingMore = false;
       _errorMessage = e.toString();
       notifyListeners();
-      print('Error loading more history: $e');
+      AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error loading more history');
       rethrow;
     }
   }

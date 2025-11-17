@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Note: Google Services plugin is now managed via settings.gradle.kts (FlutterFire approach)
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
     }
 }
 
