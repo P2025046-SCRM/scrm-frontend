@@ -5,6 +5,7 @@ import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
+import 'package:scrm/utils/constants.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../common/widgets/appbar_widget.dart';
@@ -24,23 +25,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch dashboard statistics on screen load
       final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       
-      // Fetch user data first to get company name
       if (userProvider.currentUser == null || userProvider.userName == null) {
         userProvider.fetchUserData().then((_) {
-          // After user data is loaded, fetch statistics with company name
           final companyName = userProvider.userCompany ?? '3J Solutions';
           dashboardProvider.fetchStatistics(companyName: companyName);
         }).catchError((e, stackTrace) {
           AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data in dashboard');
-          // Still try to fetch statistics with default company
           dashboardProvider.fetchStatistics(companyName: '3J Solutions');
         });
       } else {
-        // User data already loaded, fetch statistics with company name
         final companyName = userProvider.userCompany ?? '3J Solutions';
         dashboardProvider.fetchStatistics(companyName: companyName);
       }
@@ -96,16 +92,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         PieChartData(
                           sections: [
                             PieChartSectionData(
-                              color: Colors.green,
+                              color: AppColors.recyclableGreen,
                               value: recyclablePercent,
-                              title: 'Reciclable',
+                              title: WasteTypes.reciclable,
                               showTitle: false,
                               radius: 50,
                             ),
                             PieChartSectionData(
-                              color: Colors.red,
+                              color: AppColors.nonRecyclableRed,
                               value: nonRecyclablePercent,
-                              title: 'No Reciclable',
+                              title: WasteTypes.noReciclable,
                               showTitle: false,
                               radius: 50,
                             ),
@@ -122,12 +118,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         const Indicator(
-                          color: Colors.green,
+                          color: AppColors.recyclableGreen,
                           text: 'Reutilizable',
                           isSquare: false,
                         ),
                         const Indicator(
-                          color: Colors.red,
+                          color: AppColors.nonRecyclableRed,
                           text: 'No Reutilizable',
                           isSquare: false,
                         ),
@@ -147,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Porcentaje de Materiales Reutilizables', style: kRegularTextStyle,),
-                      Text('Reciclable: $recyclablePercent%    |    No Reciclable: $nonRecyclablePercent%', style: kDescriptionTextStyle,),
+                      Text('${WasteTypes.reciclable}: $recyclablePercent%    |    ${WasteTypes.noReciclable}: $nonRecyclablePercent%', style: kDescriptionTextStyle,),
                     ],
                   );
                 },
@@ -185,7 +181,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Horizontal legend with scroll for small screens
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Padding(
@@ -194,25 +189,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
                             Indicator(
-                              color: Color.fromARGB(255, 193, 123, 25),
-                              text: 'Retazos',
+                              color: AppColors.retazosOrange,
+                              text: WasteTypes.retazos,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 71, 178, 29),
-                              text: 'Biomasa',
+                              color: AppColors.biomasaGreen,
+                              text: WasteTypes.biomasa,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 146, 155, 170),
-                              text: 'Metales',
+                              color: AppColors.metalesGray,
+                              text: WasteTypes.metales,
                               isSquare: false,
                             ),
                             SizedBox(width: 16),
                             Indicator(
-                              color: Color.fromARGB(255, 6, 17, 167),
+                              color: AppColors.plasticosBlue,
                               text: 'Plásticos',
                               isSquare: false,
                             ),
@@ -238,9 +233,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-                                reservedSize: 50, // Wider Y axis for title
+                                reservedSize: 50,
                                 getTitlesWidget: (value, meta) {
-                                  // Show only integer ticks, e.g. every 10 units
                                   if (value % 10 == 0) {
                                     return Text(
                                       value.toInt().toString(),
@@ -271,11 +265,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 BarChartRodData(
                                   toY: barData.isEmpty ? 0.0 : barData[i],
                                   color: [
-                                    const Color.fromARGB(255, 193, 123, 25),
-                                    const Color.fromARGB(255, 71, 178, 29),
-                                    const Color.fromARGB(255, 146, 155, 170),
-                                    const Color.fromARGB(255, 6, 17, 167),
-                                  ][i % 4], // Assign a different color for each bar
+                                    AppColors.retazosOrange,
+                                    AppColors.biomasaGreen,
+                                    AppColors.metalesGray,
+                                    AppColors.plasticosBlue,
+                                  ][i % 4],
                                   width: 25,
                                   borderRadius: const BorderRadius.only(
                                     topLeft: Radius.circular(3),
@@ -302,9 +296,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text('Residuos Reutilizables por Tipo', style: kRegularTextStyle,),
                       Text(
-                        'Retazos: ${percentages['retazos']!.toStringAsFixed(0)}%  |  '
-                        'Biomasa: ${percentages['biomasa']!.toStringAsFixed(0)}%  |  '
-                        'Metales: ${percentages['metales']!.toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.retazos}: ${percentages['retazos']!.toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.biomasa}: ${percentages['biomasa']!.toStringAsFixed(0)}%  |  '
+                        '${WasteTypes.metales}: ${percentages['metales']!.toStringAsFixed(0)}%  |  '
                         'Plásticos: ${percentages['plasticos']!.toStringAsFixed(0)}%',
                         style: kDescriptionTextStyle,
                       ),
@@ -343,9 +337,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             minimum: 0,
                             maximum: 100,
                             ranges: <GaugeRange>[
-                              GaugeRange(startValue: 0, endValue: 60, color: Colors.red),
+                              GaugeRange(startValue: 0, endValue: 60, color: AppColors.nonRecyclableRed),
                               GaugeRange(startValue: 60, endValue: 85, color: Colors.orange),
-                              GaugeRange(startValue: 85, endValue: 100, color: Colors.green),
+                              GaugeRange(startValue: 85, endValue: 100, color: AppColors.recyclableGreen),
                             ],
                             pointers: <GaugePointer>[
                               NeedlePointer(value: accuracy, needleLength: 0.95, needleEndWidth: 7,)
@@ -367,7 +361,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         const Indicator(
-                          color: Colors.red,
+                          color: AppColors.nonRecyclableRed,
                           text: 'Bajo (<60%)',
                           isSquare: false,
                         ),
@@ -379,7 +373,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         SizedBox(height: 12),
                         const Indicator(
-                          color: Colors.green,
+                          color: AppColors.recyclableGreen,
                           text: 'Alto (>85%)',
                           isSquare: false,
                         ),                        

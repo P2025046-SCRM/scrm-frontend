@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../common/styles/text_styles.dart';
 import '../../../common/widgets/item_thumbnail_widget.dart';
 import '../../../utils/waste_type_helper.dart';
+import '../../../utils/constants.dart';
 
 class HistoryListItem extends StatelessWidget {
   const HistoryListItem({
@@ -36,7 +37,7 @@ class HistoryListItem extends StatelessWidget {
     final String wasteLabel = WasteTypeHelper.getWasteType(layer1, layer2);
     
     // Format layer1 for display (NoReciclable -> No Reciclable)
-    final String displayLayer1 = layer1 == 'NoReciclable' ? 'No Reciclable' : layer1;
+    final String displayLayer1 = layer1 == WasteTypes.noReciclable ? 'No Reciclable' : layer1;
 
     final bool isAssetImage = imagePath.isEmpty || (!imagePath.startsWith('http') && !imagePath.startsWith('/'));
     
@@ -61,7 +62,7 @@ class HistoryListItem extends StatelessWidget {
                     style: kSubtitleTextStyle,
                   ),
                   // Second line: Layer2 result • Interno/Externo • Layer2 confidence (only if Reciclable)
-                  if (layer1 == 'Reciclable' && layer2.isNotEmpty && layer2ConfidenceText != null) ...[
+                  if (layer1 == WasteTypes.reciclable && layer2.isNotEmpty && layer2ConfidenceText != null) ...[
                     SizedBox(height: 10,),
                     Text(
                       '$layer2 • $wasteLabel • $layer2ConfidenceText%',

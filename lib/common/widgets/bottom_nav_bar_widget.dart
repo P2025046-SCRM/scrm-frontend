@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scrm/utils/constants.dart';
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({
@@ -25,18 +26,18 @@ class BottomNavBar extends StatelessWidget {
         ),
       ],
       currentIndex: currentIndex,
-      selectedItemColor: Colors.green,
+      selectedItemColor: AppColors.recyclableGreen,
       onTap: (index) {
         if (index == currentIndex) return; // Do nothing if the same tab is tapped
         switch (index) {
           case 0:
-            Navigator.pushReplacementNamed(context, 'dashboard');
+            Navigator.pushReplacementNamed(context, AppRouteNames.dashboard);
             break;
           case 1:
-            Navigator.pushNamed(context, 'camera');
+            Navigator.pushNamed(context, AppRouteNames.camera);
             break;
           case 2:
-            Navigator.pushReplacementNamed(context, 'history');
+            Navigator.pushReplacementNamed(context, AppRouteNames.history);
             break;
         }
       },

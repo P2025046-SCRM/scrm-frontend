@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:scrm/data/providers/settings_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/logger.dart';
+import 'package:scrm/utils/constants.dart';
 import '../../common/styles/text_styles.dart';
 import 'widgets/logout_confirmation_widget.dart';
 import 'widgets/profile_actions_widget.dart';
@@ -63,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text('Configuración', style: kSubtitleTextStyle,),
             ),
             Divider(
-              color: Color.fromARGB(255, 99, 135, 99),
+              color: AppColors.accentGreen,
               indent: 5,
               endIndent:5,
             ),
@@ -98,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             SizedBox(height: 20,),  // Adding some spacing instead
             ProfileActions(editProfile: (){
-              Navigator.pushNamed(context, 'edit_profile');
+              Navigator.pushNamed(context, AppRouteNames.editProfile);
             }, logout: _showLogoutConfirmation,),
                 ],
               ),

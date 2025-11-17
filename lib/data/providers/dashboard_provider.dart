@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/logger.dart';
+import '../../utils/constants.dart';
 
 /// Provider for dashboard statistics state management
 /// 
@@ -98,10 +99,10 @@ class DashboardProvider extends ChangeNotifier {
 
       // Waste type distribution (layer2 classes)
       final Map<String, int> wasteTypeCounts = {
-        'Retazos': 0,
-        'Biomasa': 0,
-        'Metales': 0,
-        'Plastico': 0,
+        WasteTypes.retazos: 0,
+        WasteTypes.biomasa: 0,
+        WasteTypes.metales: 0,
+        WasteTypes.plastico: 0,
         'Plásticos': 0, // Handle both spellings
       };
 
@@ -115,9 +116,9 @@ class DashboardProvider extends ChangeNotifier {
           final layer1Result = modelResponse['layer1_result'] as Map<String, dynamic>?;
           if (layer1Result != null) {
             final layer1Prediction = layer1Result['prediction'] as String? ?? '';
-            if (layer1Prediction == 'Reciclable') {
+            if (layer1Prediction == WasteTypes.reciclable) {
               recyclableCount++;
-            } else if (layer1Prediction == 'NoReciclable') {
+            } else if (layer1Prediction == WasteTypes.noReciclable) {
               nonRecyclableCount++;
             }
 
@@ -151,7 +152,7 @@ class DashboardProvider extends ChangeNotifier {
       }
 
       // Combine Plastico counts (handle both spellings)
-      final totalPlastico = (wasteTypeCounts['Plastico'] ?? 0) + (wasteTypeCounts['Plásticos'] ?? 0);
+      final totalPlastico = (wasteTypeCounts[WasteTypes.plastico] ?? 0) + (wasteTypeCounts['Plásticos'] ?? 0);
 
       // Build statistics map
       _statistics = {
@@ -160,9 +161,9 @@ class DashboardProvider extends ChangeNotifier {
         'non_recyclable_count': nonRecyclableCount,
         'correct_count': correctCount,
         'waste_type_distribution': {
-          'retazos': wasteTypeCounts['Retazos'] ?? 0,
-          'biomasa': wasteTypeCounts['Biomasa'] ?? 0,
-          'metales': wasteTypeCounts['Metales'] ?? 0,
+          'retazos': wasteTypeCounts[WasteTypes.retazos] ?? 0,
+          'biomasa': wasteTypeCounts[WasteTypes.biomasa] ?? 0,
+          'metales': wasteTypeCounts[WasteTypes.metales] ?? 0,
           'plasticos': totalPlastico,
         },
       };

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:scrm/common/widgets/text_field_widget.dart';
 import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/utils/error_handler.dart';
+import 'package:scrm/utils/constants.dart';
 import '../../common/styles/text_styles.dart';
 import '../../common/widgets/hl_button_widget.dart';
 
@@ -37,8 +38,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (value == null || value.isEmpty) {
       return 'Por favor ingrese su nombre';
     }
-    if (value.length < 2) {
-      return 'El nombre debe tener al menos 2 caracteres';
+    if (value.length < AppDefaults.minNameLength) {
+      return 'El nombre debe tener al menos ${AppDefaults.minNameLength} caracteres';
     }
     return null;
   }
@@ -110,7 +111,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
                               content: Text('Perfil actualizado exitosamente'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: AppColors.recyclableGreen,
                             ),
                           );
 
@@ -122,7 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             SnackBar(
                               content: Text(errorMessage),
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppColors.nonRecyclableRed,
                             ),
                           );
                         }
