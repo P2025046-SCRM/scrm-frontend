@@ -18,6 +18,7 @@ import 'package:scrm/data/providers/user_provider.dart';
 import 'package:scrm/data/providers/settings_provider.dart';
 import 'package:scrm/data/providers/classification_provider.dart';
 import 'package:scrm/data/providers/dashboard_provider.dart';
+import 'package:scrm/data/providers/admin_dashboard_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,7 @@ Future<void> main() async {
   final settingsProvider = SettingsProvider(storageService);
   final classificationProvider = ClassificationProvider(historyService);
   final dashboardProvider = DashboardProvider(firestore);
+  final adminDashboardProvider = AdminDashboardProvider(firestore);
 
   // Initialize authentication state
   await authProvider.initialize();
@@ -76,6 +78,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: settingsProvider),
         ChangeNotifierProvider.value(value: classificationProvider),
         ChangeNotifierProvider.value(value: dashboardProvider),
+        ChangeNotifierProvider.value(value: adminDashboardProvider),
         Provider.value(value: predictionService), // Make PredictionService available via Provider
         Provider.value(value: historyService), // Make HistoryService available via Provider
       ],

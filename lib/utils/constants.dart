@@ -17,6 +17,7 @@ class AppRouteNames {
   static const String profile = 'profile';
   static const String editProfile = 'edit_profile';
   static const String dashboard = 'dashboard';
+  static const String adminDashboard = 'admin_dashboard';
   static const String history = 'history';
   static const String camera = 'camera';
 }

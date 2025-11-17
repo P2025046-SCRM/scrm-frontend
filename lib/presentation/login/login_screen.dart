@@ -120,9 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             }
 
-                            // Navigate to dashboard after user data is loaded
+                            // Navigate if user is admin or not
                             if (mounted) {
-                              Navigator.pushReplacementNamed(this.context, 'dashboard');
+                              final companyName = userProvider.userCompany;
+                              if (companyName == 'Admin') {
+                                Navigator.pushReplacementNamed(this.context, 'admin_dashboard');
+                              } else {
+                                Navigator.pushReplacementNamed(this.context, 'dashboard');
+                              }
                             }
                           } else {
                             // Show error message (already translated in AuthService)
