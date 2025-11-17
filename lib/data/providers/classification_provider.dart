@@ -3,10 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../services/history_service.dart';
 import '../../utils/logger.dart';
 
-/// Provider for classification history state management
-/// 
-/// Manages classification history, recent classifications, and caching
-/// Fetches data from Firestore predictions collection filtered by company
+// Provider for classification history state management
 class ClassificationProvider extends ChangeNotifier {
   final HistoryService _historyService;
 
@@ -21,27 +18,26 @@ class ClassificationProvider extends ChangeNotifier {
     _loadCachedHistory();
   }
 
-  /// Get classification history
+  // Get classification history
   List<Map<String, dynamic>> get history => _history;
 
-  /// Check if history is loading (initial load)
+  // Check if history is loading (initial load)
   bool get isLoading => _isLoading;
 
-  /// Check if more items are being loaded (pagination)
+  // Check if more items are being loaded (pagination)
   bool get isLoadingMore => _isLoadingMore;
 
-  /// Check if there are more items to load
+  // Check if there are more items to load
   bool get hasMore => _hasMore;
 
-  /// Get current error message
+  // Get current error message
   String? get errorMessage => _errorMessage;
 
-  /// Get history count
+  // Get history count
   int get historyCount => _history.length;
 
-  /// Load cached history from local storage
-  /// Note: Cached history is only used for immediate display.
-  /// Fresh data should be fetched to enable pagination.
+  // Load cached history from local storage
+  // Note: Cached history is only used for immediate display.
   void _loadCachedHistory() {
     final cachedHistory = _historyService.getCachedHistory();
     if (cachedHistory != null && cachedHistory.isNotEmpty) {
@@ -52,11 +48,11 @@ class ClassificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetch classification history from Firestore
-  /// 
-  /// [companyName] - Company name to filter predictions by (required)
-  /// [limit] - Maximum number of records to fetch (optional)
-  /// [forceRefresh] - Force refresh from Firestore even if cache exists (default: false)
+  // Fetch classification history from Firestore
+  // 
+  // [companyName] - Company name to filter predictions by
+  // [limit] - Maximum number of records to fetch (optional)
+  // [forceRefresh] - Force refresh from Firestore even if cache exists
   Future<void> fetchHistory({
     required String companyName,
     int? limit,
@@ -118,10 +114,10 @@ class ClassificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Load more history items (pagination)
-  /// 
-  /// [companyName] - Company name to filter predictions by (required)
-  /// [limit] - Number of records to fetch (default: 10)
+  // Load more history items (pagination)
+  // 
+  // [companyName] - Company name to filter predictions by
+  // [limit] - Number of records to fetch
   Future<void> loadMore({
     required String companyName,
     int limit = 10,
@@ -179,9 +175,9 @@ class ClassificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Add a new classification to history
-  /// 
-  /// [classification] - Classification data to add
+  // Add a new classification to history
+  // 
+  // [classification] - Classification data to add
   Future<void> addClassification(Map<String, dynamic> classification) async {
     _history.insert(0, classification);
 
@@ -191,7 +187,7 @@ class ClassificationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clear classification history
+  // Clear classification history
   Future<void> clearHistory() async {
     _history = [];
     _lastDocument = null;
@@ -200,15 +196,15 @@ class ClassificationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clear error message
+  // Clear error message
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  /// Refresh history from Firestore
-  /// 
-  /// [companyName] - Company name to filter predictions by (required)
+  // Refresh history from Firestore
+  // 
+  // [companyName] - Company name to filter predictions by
   Future<void> refresh({required String companyName}) async {
     await fetchHistory(companyName: companyName, limit: 10, forceRefresh: true);
   }

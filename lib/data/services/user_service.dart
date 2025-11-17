@@ -176,16 +176,6 @@ class UserService {
     }
   }
 
-  /// Upload profile picture
-  /// 
-  /// [imageBase64] - Base64 encoded image string
-  /// 
-  /// Returns updated user data with new profile picture URL
-  /// Note: Profile picture upload functionality needs to be implemented with Firebase Storage
-  Future<Map<String, dynamic>> uploadProfilePicture(String imageBase64) async {
-    throw Exception('Profile picture upload not yet implemented. Use Firebase Storage to implement this feature.');
-  }
-
   /// Get cached user data from local storage
   Map<String, dynamic>? getCachedUserData() {
     return _storageService.getUserData();

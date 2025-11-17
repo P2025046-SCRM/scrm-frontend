@@ -16,19 +16,13 @@ class ProfileHeaderWidget extends StatelessWidget {
         final name = userProvider.userName ?? 'Usuario';
         final email = userProvider.userEmail ?? '';
         final company = userProvider.userCompany ?? '';
-        final profilePictureUrl = userProvider.profilePictureUrl;
 
         return Center(
           child: Column(
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: profilePictureUrl != null && profilePictureUrl.isNotEmpty
-                    ? NetworkImage(profilePictureUrl) as ImageProvider
-                    : AssetImage('assets/profile_placeholder.png'),
-                onBackgroundImageError: (exception, stackTrace) {
-                  // Fallback to placeholder if network image fails
-                },
+                backgroundImage: AssetImage('assets/profile_placeholder.png'),
               ),
               SizedBox(height: 8,),
               Text(name, style: kSubtitleTextStyle,),

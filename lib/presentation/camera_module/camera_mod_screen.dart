@@ -35,8 +35,6 @@ class _CameraModScreenState extends State<CameraModScreen> {
   String imagePath = 'assets/sample_wood_image.jpg'; // placeholder imagepath;
 
   bool isCurrentImageAsset = true; // to check if current img is asset of from gallery/camera
-
-  XFile? imageFile;
   
   // Image to be sent to endpoint
   XFile? imageToProcess;
