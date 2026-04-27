@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
@@ -358,21 +357,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     // Build image path with SAS token if needed
     String imagePath = widget.imagePath;
-    // Only append SAS token if it's not already appended and it's a network URL
-    if (imagePath.isNotEmpty && imagePath.startsWith('http')) {
-      // Check if SAS token is already appended
-      final hasSasToken = imagePath.contains('?') || imagePath.contains('&');
-      if (!hasSasToken) {
-        try {
-          final sasToken = dotenv.env['AZURE_CONTAINER_SAS_TOKEN'];
-          if (sasToken != null && sasToken.isNotEmpty) {
-            imagePath = '$imagePath?$sasToken';
-          }
-        } catch (e, stackTrace) {
-          AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
-        }
-      }
-    }
     
     // Determine if image is asset or network based on final imagePath
     final bool isNetworkImage = imagePath.isNotEmpty && 

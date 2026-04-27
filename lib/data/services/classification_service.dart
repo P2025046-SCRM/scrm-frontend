@@ -1,42 +1,43 @@
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:scrm/data/models/camera_module/classification_result_model.dart';
+import 'package:scrm/data/services/remote_config_service.dart';
+import 'package:scrm/utils/logger.dart';
 
 /// Service for image classification operations
 /// 
 /// Handles communication with the external WasteNet API for image classification
 class ClassificationService {
-  //these are set from .env file
-  final String? apiBaseUrl = dotenv.env['WFWASTENET_API_BASE_URL'];
-  final String? apiBearerToken = dotenv.env['WFWASTENET_API_BEARER_TOKEN'];
+  final RemoteConfigService _remoteConfigService;
+
+  ClassificationService(this._remoteConfigService);
+
+  String get apiBaseUrl => _remoteConfigService.apiBaseUrl;
+  String get apiKeyBackend => _remoteConfigService.apiKeyBackend;
 
   Future<ClassificationResult> classifyImage(String imageBase64) async {
 
-    if (apiBaseUrl == null || apiBearerToken == null){
-      throw Exception("API url or token not found in env variables");
-    }
-
-    //Create payload
     final payload = {
       "mode": "prod", //prod for real production inference. when testing:
       // "layer1" used to test binary layer only
       // "layer2" used to test multiclass layer only
-      // "health" used to test api health
       "image_base64": imageBase64
     };
 
     //Create headers
     final headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $apiBearerToken'
+      'X-API-Key': apiKeyBackend
     };
+
+    final predictionUrl = '$apiBaseUrl/predict';
 
     //Make POST Request
     try {
+      AppLogger.logInfo('ClassificationService: Sending request to $predictionUrl');
       final response = await http.post(
-        Uri.parse(apiBaseUrl!),
+        Uri.parse(predictionUrl),
         headers: headers,
         body: json.encode(payload),
       );

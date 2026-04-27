@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/styles/text_styles.dart';
@@ -40,7 +39,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
   XFile? imageToProcess;
   bool isProcessing = false;
 
-  final ClassificationService _classificationService = ClassificationService();
+  ClassificationService? _classificationService; // Will be initialized from context
   PredictionService? _predictionService; // Will be initialized from context
   HistoryService? _historyService; // Will be initialized from context
 
@@ -61,6 +60,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Initialize services from Provider
+    _classificationService = Provider.of<ClassificationService>(context, listen: false);
     _predictionService = Provider.of<PredictionService>(context, listen: false);
     _historyService = Provider.of<HistoryService>(context, listen: false);
     
@@ -95,15 +95,6 @@ class _CameraModScreenState extends State<CameraModScreen> {
         
         String latestImagePath = latestPrediction['image_url'] as String? ?? '';
         if (latestImagePath.isNotEmpty && latestImagePath.startsWith('http')) {
-          try {
-            final sasToken = dotenv.env['AZURE_CONTAINER_SAS_TOKEN'];
-            if (sasToken != null && sasToken.isNotEmpty) {
-              final separator = latestImagePath.contains('?') ? '&' : '?';
-              latestImagePath = '$latestImagePath$separator$sasToken';
-            }
-          } catch (e, stackTrace) {
-            AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
-          }
         }
 
         setState(() {
@@ -192,7 +183,7 @@ class _CameraModScreenState extends State<CameraModScreen> {
       final bytes = await imageFile.readAsBytes();
       final String imageBase64 = base64Encode(bytes);
       final classification =
-          await _classificationService.classifyImage(imageBase64);
+          await _classificationService!.classifyImage(imageBase64);
 
       if (!mounted) return;
 

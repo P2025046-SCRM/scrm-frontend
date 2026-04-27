@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:scrm/data/services/storage_service.dart';
+import 'package:scrm/data/services/remote_config_service.dart';
 import 'package:scrm/utils/logger.dart';
 
 /// Service for authentication operations using Firebase Auth
@@ -10,8 +11,9 @@ class AuthService {
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
   final StorageService _storageService;
+  final RemoteConfigService _remoteConfigService;
 
-  AuthService(this._firebaseAuth, this._firestore, this._storageService);
+  AuthService(this._firebaseAuth, this._firestore, this._storageService, this._remoteConfigService);
 
   /// Get current Firebase user
   User? get currentUser => _firebaseAuth.currentUser;
@@ -60,12 +62,12 @@ class AuthService {
           // If Firestore doc doesn't exist yet, use displayName as name fallback
           userData['name'] = user.displayName ?? '';
         }
-      } catch (e, stackTrace) {
-        // If Firestore read fails, continue with basic user data
-        AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data from Firestore during login');
-        // Use displayName as name fallback
+      } catch (e) {
         userData['name'] = user.displayName ?? '';
       }
+
+      // Fetch and activate Remote Config on successful login
+      await _remoteConfigService.fetchAndActivate();
 
       return userData;
     } on FirebaseAuthException catch (e) {
@@ -169,6 +171,9 @@ class AuthService {
       } catch (e, stackTrace) {
         AppLogger.logError(e, stackTrace: stackTrace, reason: 'Failed to fetch user data from Firestore during signup');
       }
+
+      // Fetch and activate Remote Config on successful signup
+      await _remoteConfigService.fetchAndActivate();
 
       return userData;
     } on FirebaseAuthException catch (e) {

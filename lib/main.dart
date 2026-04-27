@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:scrm/data/services/classification_service.dart';
 import 'package:scrm/firebase_options.dart';
 import 'package:scrm/utils/routes.dart';
 import 'package:scrm/data/services/storage_service.dart';
 import 'package:scrm/data/services/auth_service.dart';
 import 'package:scrm/data/services/user_service.dart';
 import 'package:scrm/data/services/history_service.dart';
+import 'package:scrm/data/services/remote_config_service.dart';
 import 'package:scrm/data/services/prediction_service.dart';
 import 'package:scrm/data/providers/auth_provider.dart';
 import 'package:scrm/data/providers/user_provider.dart';
@@ -24,13 +26,14 @@ import 'package:scrm/utils/constants.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
-  
   // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Remote Config
+  final remoteConfigService = RemoteConfigService(FirebaseRemoteConfig.instance);
+  await remoteConfigService.initialize();
 
   // Initialize Crashlytics
   FlutterError.onError = (errorDetails) {
@@ -54,11 +57,12 @@ Future<void> main() async {
   final storageService = await StorageService.getInstance();
   final firebaseAuth = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
-  final authService = AuthService(firebaseAuth, firestore, storageService);
+  final authService = AuthService(firebaseAuth, firestore, storageService, remoteConfigService);
   // UserService uses Firestore as primary data source
   final userService = UserService(storageService, firestore, firebaseAuth);
   final historyService = HistoryService(storageService, firestore);
   final predictionService = PredictionService(firestore, firebaseAuth);
+  final classificationService = ClassificationService(remoteConfigService);
 
   // Initialize providers
   final authProvider = AuthProvider(authService);
@@ -82,6 +86,8 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: adminDashboardProvider),
         Provider.value(value: predictionService), // Make PredictionService available via Provider
         Provider.value(value: historyService), // Make HistoryService available via Provider
+        Provider.value(value: remoteConfigService), // Make RemoteConfigService available via Provider
+        Provider.value(value: classificationService), // Make ClassificationService available via Provider
       ],
       child: const MainApp(),
     ),

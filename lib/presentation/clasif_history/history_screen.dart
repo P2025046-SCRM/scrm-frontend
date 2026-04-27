@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:scrm/common/widgets/appbar_widget.dart';
 import 'package:scrm/common/widgets/bottom_nav_bar_widget.dart';
@@ -124,20 +123,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 // Determine if image is asset before appending SAS token
                 final bool isAssetImage = imagePath.isEmpty || 
                                          (!imagePath.startsWith('http') && !imagePath.startsWith('/'));
-                
-                // Append Azure SAS token to image URL if it's a network URL
-                if (imagePath.isNotEmpty && imagePath.startsWith('http')) {
-                  try {
-                    final sasToken = dotenv.env['AZURE_CONTAINER_SAS_TOKEN'];
-                    if (sasToken != null && sasToken.isNotEmpty) {
-                      // Check if URL already has query parameters
-                      final separator = imagePath.contains('?') ? '&' : '?';
-                      imagePath = '$imagePath$separator$sasToken';
-                    }
-                  } catch (e, stackTrace) {
-                    AppLogger.logError(e, stackTrace: stackTrace, reason: 'Error appending SAS token to image URL');
-                  }
-                }
                 
                 // Extract layer1 and layer2 from model_response
                 final layer1Result = item['layer1_result'] as Map<String, dynamic>?;
