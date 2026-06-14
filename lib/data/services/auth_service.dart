@@ -107,6 +107,7 @@ class AuthService {
     required String name,
     required String email,
     required String password,
+    required String companyName,
   }) async {
     try {
       // Create user with Firebase Auth
@@ -136,7 +137,7 @@ class AuthService {
         await _firestore.collection('users').doc(user.uid).set({
           'name': name,
           'email': email.trim(),
-          'company': '3J Solutions', // Hardcoded company name, would be dynamic when the app becomes multi-company
+          'company': companyName,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
@@ -153,7 +154,7 @@ class AuthService {
         'emailVerified': updatedUser.emailVerified,
         'displayName': updatedUser.displayName ?? name,
         'name': name, // Ensure 'name' is always set from registration
-        'company': '3J Solutions', // Hardcoded company name
+        'company': companyName,
       };
 
       // Try to get full user data from Firestore and merge it

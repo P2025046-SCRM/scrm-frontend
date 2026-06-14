@@ -61,12 +61,14 @@ class AuthProvider extends ChangeNotifier {
   /// [name] - User full name
   /// [email] - User email address
   /// [password] - User password
+  /// [companyName] - Company name
   /// 
   /// Returns true if signup successful, false otherwise
   Future<bool> signup({
     required String name,
     required String email,
     required String password,
+    required String companyName,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -77,6 +79,7 @@ class AuthProvider extends ChangeNotifier {
         name: name,
         email: email,
         password: password,
+        companyName: companyName,
       );
       _isAuthenticated = true;
       _isLoading = false;
