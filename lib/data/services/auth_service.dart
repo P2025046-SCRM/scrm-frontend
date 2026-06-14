@@ -70,33 +70,10 @@ class AuthService {
       await _remoteConfigService.fetchAndActivate();
 
       return userData;
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Error al iniciar sesión';
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'No se encontró un usuario con este email';
-          break;
-        case 'wrong-password':
-          errorMessage = 'Contraseña incorrecta';
-          break;
-        case 'invalid-email':
-          errorMessage = 'Dirección de email inválida';
-          break;
-        case 'user-disabled':
-          errorMessage = 'Esta cuenta de usuario ha sido deshabilitada';
-          break;
-        case 'too-many-requests':
-          errorMessage = 'Demasiados intentos fallidos. Por favor, intente más tarde';
-          break;
-        case 'network-request-failed':
-          errorMessage = 'Error de conexión. Verifique su conexión a internet';
-          break;
-        default:
-          errorMessage = 'Error al iniciar sesión: ${e.message ?? "Error desconocido"}';
-      }
-      throw Exception(errorMessage);
+    } on FirebaseAuthException catch (_) {
+      throw Exception('Credenciales incorrectas. Intenta de nuevo');
     } catch (e) {
-      throw Exception('Error al iniciar sesión: $e');
+      throw Exception('Credenciales incorrectas. Intenta de nuevo');
     }
   }
 
